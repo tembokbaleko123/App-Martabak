@@ -21,4 +21,6 @@ class MenuCreateUpdateSerializer(serializers.ModelSerializer):
     def validate_price(self, value):
         if value < 0:
             raise serializers.ValidationError('Harga tidak boleh negatif')
+        if value > 100_000_000:
+            raise serializers.ValidationError('Harga tidak boleh lebih dari Rp 100.000.000')
         return value

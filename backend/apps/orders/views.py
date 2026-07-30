@@ -40,8 +40,13 @@ class OrderViewSet(viewsets.GenericViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.role == 'owner':
-            return Order.objects.all()
-        return Order.objects.filter(kasir=user)
+            queryset = Order.objects.all()
+        else:
+            queryset = Order.objects.filter(kasir=user)
+
+        if self.action == 'list':
+            queryset = queryset.prefetch_related('items')
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'create':

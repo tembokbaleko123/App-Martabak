@@ -6,6 +6,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from core.throttles import LoginRateThrottle
 from .models import Kasir
 from .serializers import (
     PinLoginSerializer,
@@ -25,6 +26,7 @@ class AuthViewSet(viewsets.GenericViewSet):
     - GET /api/v1/accounts/me/ - Info user yang login
     """
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     @action(detail=False, methods=['post'], url_path='pin')
     def pin_login(self, request):

@@ -49,7 +49,7 @@ class MaterialCostEntryViewSet(viewsets.ModelViewSet):
         return MaterialCostEntrySerializer
 
     def get_queryset(self):
-        return MaterialCostEntry.objects.all().order_by('-date_from')
+        return MaterialCostEntry.objects.filter(is_active=True).order_by('-date_from')
 
     def create(self, request):
         serializer = MaterialCostEntryCreateSerializer(
@@ -80,5 +80,6 @@ class MaterialCostEntryViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.delete()
+        instance.is_active = False
+        instance.save()
         return Response({'message': 'Entry berhasil dihapus'}, status=status.HTTP_200_OK)

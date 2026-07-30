@@ -57,6 +57,7 @@ class MaterialCostEntry(models.Model):
         null=True,
         related_name='cost_entries'
     )
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

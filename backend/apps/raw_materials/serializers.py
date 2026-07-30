@@ -140,11 +140,14 @@ class MaterialCostEntryUpdateSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         items_data = validated_data.get('items')
         notes = validated_data.get('notes')
+        date_changed = False
 
         if 'date_from' in validated_data:
             instance.date_from = validated_data['date_from']
+            date_changed = True
         if 'date_to' in validated_data:
             instance.date_to = validated_data['date_to']
+            date_changed = True
         if notes is not None:
             instance.notes = notes
 
@@ -165,7 +168,14 @@ class MaterialCostEntryUpdateSerializer(serializers.Serializer):
                 status='paid'
             ).aggregate(total=Sum('total_amount'))
             instance.total_revenue = revenue_data['total'] or 0
-
+            instance.save()
+        elif date_changed:
+            revenue_data = Order.objects.filter(
+                created_at__date__gte=instance.date_from,
+                created_at__date__lte=instance.date_to,
+                status='paid'
+            ).aggregate(total=Sum('total_amount'))
+            instance.total_revenue = revenue_data['total'] or 0
             instance.save()
 
         return instance

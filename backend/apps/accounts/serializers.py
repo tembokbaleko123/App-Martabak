@@ -21,8 +21,11 @@ class PinLoginSerializer(serializers.Serializer):
         except Kasir.DoesNotExist:
             raise serializers.ValidationError({'error': 'Username atau PIN salah'})
 
-        if not bcrypt.checkpw(pin.encode('utf-8'), kasir.pin_hash.encode('utf-8')):
-            raise serializers.ValidationError({'error': 'Username atau PIN salah'})
+        try:
+            if not bcrypt.checkpw(pin.encode('utf-8'), kasir.pin_hash.encode('utf-8')):
+                raise serializers.ValidationError({'error': 'Username atau PIN salah'})
+        except (ValueError, TypeError):
+            raise serializers.ValidationError({'error': 'Akun bermasalah. Hubungi owner.'})
 
         refresh = RefreshToken.for_user(kasir)
 

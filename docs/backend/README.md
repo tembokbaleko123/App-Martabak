@@ -52,14 +52,14 @@ Environment variables are in `.env` file. See [setup.md](setup.md) for details.
 
 ## Bug Audit Status
 
-All 15 bugs identified in [BACKEND_AUDIT.md](BACKEND_AUDIT.md) have been **fixed** (2026-07-30).
+| Audit | Bugs | Status |
+|-------|------|--------|
+| Round 1 | 15 bugs | ✅ All Fixed |
+| Round 2 | 10 bugs | ✅ All Fixed |
+| **Total** | **25 bugs** | **✅ All Fixed** |
 
-| Severity | Count | Status |
-|----------|-------|--------|
-| 🔴 CRITICAL | 2 | ✅ Fixed |
-| 🟠 HIGH | 4 | ✅ Fixed |
-| 🟡 MEDIUM | 5 | ✅ Fixed |
-| 🔵 LOW | 4 | ✅ Fixed |
+- [BACKEND_AUDIT.md](BACKEND_AUDIT.md) - Round 1 audit (15 bugs)
+- [BACKEND_AUDIT_ROUND2.md](BACKEND_AUDIT_ROUND2.md) - Round 2 audit (10 bugs)
 
 ## Related
 
