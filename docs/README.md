@@ -28,6 +28,10 @@ docs/
 - [Data Models](backend/models.md)
 - [Postman Collection](../postman/App-Martabak-API.json)
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+
 ## Tech Stack
 
 | Layer | Technology |

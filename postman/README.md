@@ -64,7 +64,8 @@ App Martabak API
 │   ├── Update Menu (Owner Only)
 │   └── Delete Menu (Owner Only - Soft Delete)
 ├── Orders
-│   ├── Create Order
+│   ├── Create Order (GoQris)
+│   ├── Create Order (Cash)
 │   ├── List Orders (Me)
 │   ├── List All Orders (Owner Only)
 │   ├── Get Order Detail
@@ -80,8 +81,22 @@ App Martabak API
 ├── Settings (Owner Only)
 │   ├── Get Settings
 │   └── Update Settings
-└── GoQris (Owner Only)
-    └── Get Profile
+├── GoQris (Owner Only)
+│   └── Get Profile
+├── Reports (Owner Only)
+│   ├── Daily Report
+│   ├── Top Menus
+│   ├── Kasir Performance
+│   └── Profit Report
+└── Raw Materials (Owner Only)
+    ├── List Material Items
+    ├── Create Material Item
+    ├── Delete Material Item (Soft Delete)
+    ├── List Cost Entries
+    ├── Create Cost Entry
+    ├── Get Cost Entry Detail
+    ├── Update Cost Entry
+    └── Delete Cost Entry
 ```
 
 ## Environment Variables
