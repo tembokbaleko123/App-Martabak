@@ -1,0 +1,45 @@
+# Django
+Django>=5.0,<6.0
+djangorestframework>=3.15
+djangorestframework-simplejwt>=5.3
+django-cors-headers>=4.3
+django-filter>=23.5
+
+# Database
+psycopg2-binary>=2.9
+
+# Environment
+python-dotenv>=1.0
+
+# Image Processing
+Pillow>=10.0
+
+# QR Code
+qrcode>=7.4
+
+# Payment (optional - untuk development)
+midtransclient
+
+# Celery & Redis
+celery>=5.3
+redis>=5.0
+
+# Security & Auth
+bcrypt>=4.0
+
+# HTTP Client
+requests>=2.31
+
+# Date parsing
+python-dateutil>=2.8.2
+
+# Excel/PDF (untuk laporan)
+openpyxl>=3.1
+reportlab>=4.0
+
+# Server
+gunicorn>=21.0
+whitenoise>=6.6
+
+# Email (optional)
+resend>=0.5

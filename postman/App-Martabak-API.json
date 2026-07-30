@@ -1,0 +1,565 @@
+{
+	"info": {
+		"_postman_id": "app-martabak-api",
+		"name": "App Martabak API",
+		"description": "API untuk aplikasi kasir Martabak",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000/api/v1"
+		},
+		{
+			"key": "accessToken",
+			"value": ""
+		},
+		{
+			"key": "refreshToken",
+			"value": ""
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health/",
+							"host": ["{{baseUrl}}"],
+							"path": ["health/"]
+						},
+						"description": "Cek apakah server hidup"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login PIN (Owner)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access) {",
+									"    pm.collectionVariables.set('accessToken', jsonData.access);",
+									"    pm.collectionVariables.set('refreshToken', jsonData.refresh);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"owner\",\n    \"pin\": \"000000\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/accounts/pin/",
+							"host": ["{{baseUrl}}"],
+							"path": ["accounts", "pin/"]
+						},
+						"description": "Login sebagai owner dengan PIN"
+					},
+					"response": []
+				},
+				{
+					"name": "Login PIN (Kasir Budi)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access) {",
+									"    pm.collectionVariables.set('accessToken', jsonData.access);",
+									"    pm.collectionVariables.set('refreshToken', jsonData.refresh);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"Budi\",\n    \"pin\": \"1234\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/accounts/pin/",
+							"host": ["{{baseUrl}}"],
+							"path": ["accounts", "pin/"]
+						},
+						"description": "Login sebagai kasir Budi dengan PIN"
+					},
+					"response": []
+				},
+				{
+					"name": "Login PIN (Kasir Andi)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access) {",
+									"    pm.collectionVariables.set('accessToken', jsonData.access);",
+									"    pm.collectionVariables.set('refreshToken', jsonData.refresh);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"Andi\",\n    \"pin\": \"1234\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/accounts/pin/",
+							"host": ["{{baseUrl}}"],
+							"path": ["accounts", "pin/"]
+						},
+						"description": "Login sebagai kasir Andi dengan PIN"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Me (Current User)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/accounts/me/",
+							"host": ["{{baseUrl}}"],
+							"path": ["accounts", "me/"]
+						},
+						"description": "Get info user yang sedang login"
+					},
+					"response": []
+				},
+				{
+					"name": "Change PIN",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"old_pin\": \"000000\",\n    \"new_pin\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/accounts/change-pin/",
+							"host": ["{{baseUrl}}"],
+							"path": ["accounts", "change-pin/"]
+						},
+						"description": "Ganti PIN user yang login"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Menus",
+			"item": [
+				{
+					"name": "List Menu (Public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/menus/",
+							"host": ["{{baseUrl}}"],
+							"path": ["menus/"]
+						},
+						"description": "List menu aktif (tanpa auth)"
+					},
+					"response": []
+				},
+				{
+					"name": "List All Menu (Owner Only)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/menus/all/",
+							"host": ["{{baseUrl}}"],
+							"path": ["menus", "all/"]
+						},
+						"description": "List semua menu termasuk nonaktif (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Menu (Owner Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Martabak Manis Special\",\n    \"price\": 35000,\n    \"category\": \"manis\",\n    \"emoji\": \"⭐\",\n    \"sort_order\": 11\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/menus/",
+							"host": ["{{baseUrl}}"],
+							"path": ["menus/"]
+						},
+						"description": "Tambah menu baru (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Menu (Owner Only)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"price\": 32000\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/menus/1/",
+							"host": ["{{baseUrl}}"],
+							"path": ["menus", "1/"]
+						},
+						"description": "Edit menu (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Menu (Owner Only - Soft Delete)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/menus/11/",
+							"host": ["{{baseUrl}}"],
+							"path": ["menus", "11/"]
+						},
+						"description": "Soft delete menu (owner only)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Orders",
+			"item": [
+				{
+					"name": "Create Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"items\": [\n        {\"menu_id\": 1, \"qty\": 2},\n        {\"menu_id\": 3, \"qty\": 1}\n    ],\n    \"note\": \"Untuk makan di tempat\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/orders/",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders/"]
+						},
+						"description": "Buat order baru"
+					},
+					"response": []
+				},
+				{
+					"name": "List Orders (Me)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/me/",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders", "me/"]
+						},
+						"description": "List riwayat order kasir yang login"
+					},
+					"response": []
+				},
+				{
+					"name": "List All Orders (Owner Only)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders/"]
+						},
+						"description": "List semua order (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/1/",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders", "1/"]
+						},
+						"description": "Detail order by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Queue (Pending & Paid Orders)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/queue/",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders", "queue/"]
+						},
+						"description": "Antrian order pending dan paid untuk display kasir"
+					},
+					"response": []
+				},
+				{
+					"name": "Check Order Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/1/status/",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders", "1", "status/"]
+						},
+						"description": "Cek status pembayaran order"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Order (Owner Only)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/orders/1/cancel/",
+							"host": ["{{baseUrl}}"],
+							"path": ["orders", "1", "cancel/"]
+						},
+						"description": "Batalkan order (owner only)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Kasirs (Owner Only)",
+			"item": [
+				{
+					"name": "List Kasirs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/accounts/kasirs/",
+							"host": ["{{baseUrl}}"],
+							"path": ["accounts", "kasirs/"]
+						},
+						"description": "List semua kasir (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Kasir",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"Citra\",\n    \"pin\": \"5678\",\n    \"role\": \"kasir\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/accounts/kasirs/",
+							"host": ["{{baseUrl}}"],
+							"path": ["accounts", "kasirs/"]
+						},
+						"description": "Tambah kasir baru (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Kasir",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/accounts/kasirs/7/",
+							"host": ["{{baseUrl}}"],
+							"path": ["accounts", "kasirs", "7/"]
+						},
+						"description": "Update kasir (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Kasir (Soft Delete)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/accounts/kasirs/7/",
+							"host": ["{{baseUrl}}"],
+							"path": ["accounts", "kasirs", "7/"]
+						},
+						"description": "Soft delete kasir (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset PIN Kasir (Owner Only)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/accounts/kasirs/5/reset-pin/",
+							"host": ["{{baseUrl}}"],
+							"path": ["accounts", "kasirs", "5", "reset-pin/"]
+						},
+						"description": "Reset PIN kasir ke 1234 (owner only)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Settings (Owner Only)",
+			"item": [
+				{
+					"name": "Get Settings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/settings/",
+							"host": ["{{baseUrl}}"],
+							"path": ["settings/"]
+						},
+						"description": "Get app settings (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Settings",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"goqris_project_name\": \"Toko Martabak Mantap\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/settings/",
+							"host": ["{{baseUrl}}"],
+							"path": ["settings/"]
+						},
+						"description": "Update settings (owner only)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "GoQris (Owner Only)",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/goqris/profile/",
+							"host": ["{{baseUrl}}"],
+							"path": ["goqris", "profile/"]
+						},
+						"description": "Get GoQris subscription profile (owner only)"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
