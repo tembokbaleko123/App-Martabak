@@ -2,6 +2,12 @@
 Serializers untuk orders app.
 """
 import logging
+import random
+import string
+from datetime import date
+from django.db import transaction
+from django.utils import timezone
+from dateutil.parser import parse as parse_datetime
 from rest_framework import serializers
 from .models import Order, OrderItem
 from apps.menus.serializers import MenuSerializer
@@ -84,81 +90,82 @@ class CreateOrderSerializer(serializers.Serializer):
         today = date.today()
         prefix = f'INV-{today.strftime("%Y%m%d")}-'
 
-        last_order = Order.objects.filter(
-            ref_id__startswith=prefix
-        ).order_by('-ref_id').first()
-
-        if last_order:
-            last_n = int(last_order.ref_id.split('-')[-1])
-            new_n = last_n + 1
-        else:
-            new_n = 1
-
-        ref_id = f'{prefix}{new_n:03d}'
-
-        total_amount = 0
-        order_items = []
-
-        for item_data in attrs['items']:
-            menu = Menu.objects.get(id=item_data['menu_id'])
-            qty = item_data['qty']
-            price = menu.price
-            subtotal = qty * price
-            total_amount += subtotal
-            order_items.append({
-                'menu': menu,
-                'qty': qty,
-                'price_at_order': price,
-                'subtotal': subtotal,
-            })
-
-        order = Order.objects.create(
-            ref_id=ref_id,
-            kasir=kasir,
-            total_amount=total_amount,
-            note=attrs.get('note', ''),
-            status='pending',
-            payment_method=payment_method,
-            payment_method_label=payment_method_label,
-        )
-
-        for item_data in order_items:
-            OrderItem.objects.create(order=order, **item_data)
-
-        if payment_method == 'cash':
-            order.status = 'paid'
-            order.paid_at = timezone.now()
-            order.save(update_fields=['status', 'paid_at', 'updated_at'])
-        else:
-            settings = Settings.objects.first()
-            if settings and settings.goqris_project_name:
-                try:
-                    goqris_response = goqris_service.create_order(
-                        amount=total_amount,
-                        ref_id=ref_id,
-                        project_name=settings.goqris_project_name,
-                    )
-                    payment_detail = goqris_response.get('payment_detail', {})
-                    order.qr_string = payment_detail.get('qr_string', '')
-                    order.qr_image_url = payment_detail.get('qr_image', '')
-                    order.expires_at = goqris_response.get('expires_at')
-                    order.goqris_data = goqris_response
-                    order.payment_method = 'goqris'
-                    order.payment_method_label = 'GoQris QRIS'
-                    order.save(update_fields=['qr_string', 'qr_image_url', 'expires_at', 'goqris_data', 'payment_method', 'payment_method_label', 'updated_at'])
-                except Exception as e:
-                    logger.error(f'[ORDER] GoQris failed: {str(e)}')
-                    order.payment_method = 'goqris'
-                    order.payment_method_label = 'GoQris QRIS'
-                    order.save(update_fields=['payment_method', 'payment_method_label', 'updated_at'])
-                    from core.exceptions import GoQrisException
-                    raise GoQrisException(f'GoQris order creation failed: {str(e)}')
+        with transaction.atomic():
+            for attempt in range(10):
+                suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+                ref_id = f'{prefix}{suffix}'
+                if not Order.objects.filter(ref_id=ref_id).exists():
+                    break
             else:
+                raise ValueError('Failed to generate unique ref_id after 10 attempts')
+
+            total_amount = 0
+            order_items = []
+
+            for item_data in attrs['items']:
+                menu = Menu.objects.get(id=item_data['menu_id'])
+                qty = item_data['qty']
+                price = menu.price
+                subtotal = qty * price
+                total_amount += subtotal
+                order_items.append({
+                    'menu': menu,
+                    'qty': qty,
+                    'price_at_order': price,
+                    'subtotal': subtotal,
+                })
+
+            order = Order.objects.create(
+                ref_id=ref_id,
+                kasir=kasir,
+                total_amount=total_amount,
+                note=attrs.get('note', ''),
+                status='pending',
+                payment_method=payment_method,
+                payment_method_label=payment_method_label,
+            )
+
+            for item_data in order_items:
+                OrderItem.objects.create(order=order, **item_data)
+
+            if payment_method == 'cash':
                 order.status = 'paid'
                 order.paid_at = timezone.now()
-                order.payment_method = 'cash'
-                order.payment_method_label = self.PAYMENT_METHOD_LABELS['cash']
-                order.save(update_fields=['status', 'paid_at', 'payment_method', 'payment_method_label', 'updated_at'])
+                order.save(update_fields=['status', 'paid_at', 'updated_at'])
+            else:
+                settings = Settings.objects.first()
+                if settings and settings.goqris_project_name:
+                    try:
+                        goqris_response = goqris_service.create_order(
+                            amount=total_amount,
+                            ref_id=ref_id,
+                            project_name=settings.goqris_project_name,
+                        )
+                        payment_detail = goqris_response.get('payment_detail', {})
+                        expires_at_str = goqris_response.get('expires_at')
+                        if expires_at_str:
+                            if isinstance(expires_at_str, str):
+                                order.expires_at = parse_datetime(expires_at_str)
+                            else:
+                                order.expires_at = expires_at_str
+                        order.qr_string = payment_detail.get('qr_string', '')
+                        order.qr_image_url = payment_detail.get('qr_image', '')
+                        order.goqris_data = goqris_response
+                        order.payment_method = 'goqris'
+                        order.payment_method_label = 'GoQris QRIS'
+                        order.save(update_fields=['qr_string', 'qr_image_url', 'expires_at', 'goqris_data', 'payment_method', 'payment_method_label', 'updated_at'])
+                    except Exception as e:
+                        logger.error(f'[ORDER] GoQris failed: {str(e)}')
+                        order.delete()
+                        from core.exceptions import GoQrisException
+                        raise GoQrisException(f'GoQris order creation failed: {str(e)}')
+                else:
+                    order.delete()
+                    from core.exceptions import PaymentException
+                    raise PaymentException(
+                        'Pembayaran QRIS belum dikonfigurasi. Hubungi owner untuk setup GoQris.',
+                        status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+                    )
 
         return order
 

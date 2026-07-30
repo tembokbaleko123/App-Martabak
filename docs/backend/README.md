@@ -21,6 +21,7 @@ apps/
 ├── orders/            # Order processing & GoQris integration
 ├── goqris/            # GoQris payment service
 ├── reports/           # Reporting endpoints
+├── raw_materials/     # Profit tracking (cost entries)
 └── settings_app/      # App settings singleton
 ```
 
@@ -49,8 +50,20 @@ python manage.py runserver
 
 Environment variables are in `.env` file. See [setup.md](setup.md) for details.
 
+## Bug Audit Status
+
+All 15 bugs identified in [BACKEND_AUDIT.md](BACKEND_AUDIT.md) have been **fixed** (2026-07-30).
+
+| Severity | Count | Status |
+|----------|-------|--------|
+| 🔴 CRITICAL | 2 | ✅ Fixed |
+| 🟠 HIGH | 4 | ✅ Fixed |
+| 🟡 MEDIUM | 5 | ✅ Fixed |
+| 🔵 LOW | 4 | ✅ Fixed |
+
 ## Related
 
 - [Setup Guide](setup.md)
 - [API Endpoints](api-endpoints.md)
 - [Data Models](models.md)
+- [Bug Audit Report](BACKEND_AUDIT.md)

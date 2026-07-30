@@ -1,4 +1,6 @@
+from decimal import Decimal
 from rest_framework import serializers
+from django.db import transaction
 from django.db.models import Sum
 
 from apps.orders.models import Order
@@ -21,8 +23,18 @@ class MaterialCostItemSerializer(serializers.ModelSerializer):
 
 class MaterialCostItemCreateSerializer(serializers.Serializer):
     material_name = serializers.CharField(max_length=100)
-    quantity = serializers.DecimalField(max_digits=10, decimal_places=2)
-    price_per_unit = serializers.IntegerField()
+    quantity = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal('0.01'))
+    price_per_unit = serializers.IntegerField(min_value=1)
+
+    def validate_quantity(self, value):
+        if value <= 0:
+            raise serializers.ValidationError('Quantity harus lebih dari 0')
+        return value
+
+    def validate_price_per_unit(self, value):
+        if value <= 0:
+            raise serializers.ValidationError('Harga per unit harus lebih dari 0')
+        return value
 
     def create(self, attrs):
         item = MaterialCostItem(**attrs)
@@ -59,6 +71,16 @@ class MaterialCostEntryCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError('Minimal harus ada 1 item bahan')
         return value
 
+    def validate(self, attrs):
+        date_from = attrs.get('date_from')
+        date_to = attrs.get('date_to')
+        if date_from and date_to and date_from > date_to:
+            raise serializers.ValidationError({
+                'date_to': 'date_to harus sama atau setelah date_from.'
+            })
+        return attrs
+
+    @transaction.atomic
     def create(self, attrs):
         from apps.orders.models import Order
 
@@ -105,6 +127,16 @@ class MaterialCostEntryUpdateSerializer(serializers.Serializer):
             raise serializers.ValidationError('Minimal harus ada 1 item bahan')
         return value
 
+    def validate(self, attrs):
+        date_from = attrs.get('date_from', getattr(self.instance, 'date_from', None))
+        date_to = attrs.get('date_to', getattr(self.instance, 'date_to', None))
+        if date_from and date_to and date_from > date_to:
+            raise serializers.ValidationError({
+                'date_to': 'date_to harus sama atau setelah date_from.'
+            })
+        return attrs
+
+    @transaction.atomic
     def update(self, instance, validated_data):
         items_data = validated_data.get('items')
         notes = validated_data.get('notes')

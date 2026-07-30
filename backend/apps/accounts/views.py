@@ -1,6 +1,7 @@
 """
 Views untuk accounts app.
 """
+import secrets
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -90,7 +91,7 @@ class KasirViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='reset-pin')
     def reset_pin(self, request, pk=None):
         """
-        Reset PIN kasir ke default (owner only).
+        Reset PIN kasir ke PIN acak 6 digit (owner only).
         """
         if request.user.role != 'owner':
             return Response({'error': 'Hanya owner yang bisa reset PIN'}, status=403)
@@ -99,6 +100,10 @@ class KasirViewSet(viewsets.ModelViewSet):
         except Kasir.DoesNotExist:
             return Response({'error': 'Kasir tidak ditemukan'}, status=404)
         import bcrypt
-        kasir.pin_hash = bcrypt.hashpw('1234'.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        new_pin = ''.join(secrets.choice('0123456789') for _ in range(6))
+        kasir.pin_hash = bcrypt.hashpw(new_pin.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         kasir.save(update_fields=['pin_hash'])
-        return Response({'message': f'PIN {kasir.username} direset ke 1234'})
+        return Response({
+            'message': f'PIN {kasir.username} berhasil direset. PIN baru hanya ditampilkan SEKALI.',
+            'new_pin': new_pin,
+        })

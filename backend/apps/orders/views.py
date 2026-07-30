@@ -6,6 +6,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.db import transaction
 from django.utils import timezone
 from dateutil.parser import parse as parse_datetime
 from .models import Order, OrderItem
@@ -91,36 +92,37 @@ class OrderViewSet(viewsets.GenericViewSet):
         Cek status pembayaran order.
         Jika order masih pending, akan cek ke GoQris API dan update status.
         """
-        try:
-            order = self.get_queryset().get(pk=pk)
-        except Order.DoesNotExist:
-            return Response({'error': 'Order tidak ditemukan'}, status=404)
-
-        is_expired = order.expires_at and order.expires_at < timezone.now()
-
-        if order.status == 'pending' and not is_expired:
+        with transaction.atomic():
             try:
-                goqris_data = goqris_service.check_status(order.ref_id)
-                payment_status = goqris_data.get('payment_status', '')
+                order = Order.objects.select_for_update().get(pk=pk)
+            except Order.DoesNotExist:
+                return Response({'error': 'Order tidak ditemukan'}, status=404)
 
-                if payment_status == 'paid':
-                    order.status = 'paid'
-                    paid_at = goqris_data.get('paid_at')
-                    if paid_at:
-                        order.paid_at = parse_datetime(paid_at)
-                    order.save(update_fields=['status', 'paid_at', 'updated_at'])
-                    logger.info(f'[ORDER] Payment confirmed via GoQris: ref_id={order.ref_id}')
-                elif payment_status == 'expired':
-                    order.status = 'expired'
-                    order.save(update_fields=['status', 'updated_at'])
-                    logger.info(f'[ORDER] Payment expired via GoQris: ref_id={order.ref_id}')
+            is_expired = order.expires_at and order.expires_at < timezone.now()
 
-            except Exception as e:
-                logger.warning(f'[ORDER] GoQris check_status failed for {order.ref_id}: {str(e)}')
+            if order.status == 'pending' and not is_expired:
+                try:
+                    goqris_data = goqris_service.check_status(order.ref_id)
+                    payment_status = goqris_data.get('payment_status', '')
 
-        elif is_expired and order.status == 'pending':
-            order.status = 'expired'
-            order.save(update_fields=['status', 'updated_at'])
+                    if payment_status == 'paid':
+                        order.status = 'paid'
+                        paid_at = goqris_data.get('paid_at')
+                        if paid_at:
+                            order.paid_at = parse_datetime(paid_at)
+                        order.save(update_fields=['status', 'paid_at', 'updated_at'])
+                        logger.info(f'[ORDER] Payment confirmed via GoQris: ref_id={order.ref_id}')
+                    elif payment_status == 'expired':
+                        order.status = 'expired'
+                        order.save(update_fields=['status', 'updated_at'])
+                        logger.info(f'[ORDER] Payment expired via GoQris: ref_id={order.ref_id}')
+
+                except Exception as e:
+                    logger.warning(f'[ORDER] GoQris check_status failed for {order.ref_id}: {str(e)}')
+
+            elif is_expired and order.status == 'pending':
+                order.status = 'expired'
+                order.save(update_fields=['status', 'updated_at'])
 
         return Response({
             'ref_id': order.ref_id,
@@ -142,7 +144,7 @@ class OrderViewSet(viewsets.GenericViewSet):
         if request.user.role != 'owner':
             return Response({'error': 'Hanya owner yang bisa membatalkan order'}, status=403)
         try:
-            order = Order.objects.get(pk=pk)
+            order = self.get_queryset().get(pk=pk)
         except Order.DoesNotExist:
             return Response({'error': 'Order tidak ditemukan'}, status=404)
         if order.status in ['paid', 'cancelled']:
@@ -155,9 +157,13 @@ class OrderViewSet(viewsets.GenericViewSet):
     def queue(self, request):
         """
         Antrian shared - semua order pending dan paid (untuk display kasir).
+        Hanya menampilkan order hari ini dan kemarin.
         """
+        from datetime import date, timedelta
+        today = date.today()
         queryset = Order.objects.filter(
-            status__in=['pending', 'paid']
+            status__in=['pending', 'paid'],
+            created_at__date__gte=today - timedelta(days=1)
         ).order_by('-created_at')[:50]
         serializer = OrderListSerializer(queryset, many=True)
         return Response(serializer.data)

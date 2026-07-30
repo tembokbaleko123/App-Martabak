@@ -44,12 +44,36 @@ class ChangePinSerializer(serializers.Serializer):
         return value
 
     def validate_new_pin(self, value):
-        if len(value) < 4:
-            raise serializers.ValidationError('PIN minimal 4 digit')
+        if len(value) < 6:
+            raise serializers.ValidationError('PIN minimal 6 digit untuk keamanan.')
+
+        if all(int(value[i]) == int(value[0]) + i for i in range(len(value))):
+            raise serializers.ValidationError('PIN tidak boleh berurutan (e.g., 1234, 4321)')
+
+        if len(set(value)) == 1:
+            raise serializers.ValidationError('PIN tidak boleh semua digit sama (e.g., 1111)')
+
+        common_pins = {'0000', '1111', '1234', '4321', '9999', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '000000', '111111', '123456', '654321'}
+        if value in common_pins:
+            raise serializers.ValidationError('PIN terlalu umum. Gunakan PIN lain.')
+
         return value
+
+    def validate(self, attrs):
+        old_pin = attrs.get('old_pin')
+        new_pin = attrs.get('new_pin')
+        if old_pin and new_pin and old_pin == new_pin:
+            raise serializers.ValidationError({
+                'new_pin': 'PIN baru tidak boleh sama dengan PIN lama.'
+            })
+        return attrs
 
     def save(self):
         user = self.context['request'].user
+        if not user.is_authenticated:
+            raise PermissionError('User must be authenticated')
+        if getattr(user, 'role', None) != 'owner':
+            raise PermissionError('Only owner can change PIN')
         new_pin_hash = bcrypt.hashpw(
             self.validated_data['new_pin'].encode('utf-8'),
             bcrypt.gensalt()

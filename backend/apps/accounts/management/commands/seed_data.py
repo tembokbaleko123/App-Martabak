@@ -88,14 +88,12 @@ class Command(BaseCommand):
         settings, created = Settings.objects.get_or_create(
             id=1,
             defaults={
-                'nama_lapak': 'Martabak Pak Joko',
-                'goqris_apikey': '',
-                'goqris_project_name': '',
+                'goqris_project_name': 'Martabak Pak Joko',
             }
         )
         if created:
-            self.stdout.write(self.style.SUCCESS(f'Settings created: {settings.nama_lapak}'))
+            self.stdout.write(self.style.SUCCESS('Settings created'))
         else:
-            self.stdout.write(f'Settings already exists: {settings.nama_lapak}')
+            self.stdout.write('Settings already exists')
 
         self.stdout.write(self.style.SUCCESS('Seed data selesai!'))

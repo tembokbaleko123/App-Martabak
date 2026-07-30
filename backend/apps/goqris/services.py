@@ -52,7 +52,7 @@ class GoQrisService:
             'amount': amount,
         }
 
-        logger.info(f'[GOQRIS] Creating order: apikey={self.api_key[:10]}..., ref_id={ref_id}, amount={amount}, project_name={project_name}')
+        logger.info(f'[GOQRIS] Creating order: apikey=REDACTED, ref_id={ref_id}, amount={amount}, project_name={project_name}')
 
         try:
             response = requests.post(
