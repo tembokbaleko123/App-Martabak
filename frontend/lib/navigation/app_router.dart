@@ -94,7 +94,7 @@ class AppRouter {
           ],
         ),
         GoRoute(
-          path: RouteNames.order + '/qr',
+          path: '${RouteNames.order}/qr',
           builder: (context, state) {
             final extra = state.extra as Map<String, dynamic>?;
             return QrDisplayScreen(
@@ -131,108 +131,45 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _getSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    if (widget.user.isOwner) {
-      switch (location) {
-        case RouteNames.order:
-          return 1;
-        case RouteNames.queue:
-          return 2;
-        case RouteNames.history:
-          return 3;
-        case RouteNames.menuManage:
-          return 4;
-        case RouteNames.kasirManage:
-          return 5;
-        case RouteNames.reports:
-          return 6;
-        case RouteNames.settings:
-          return 7;
-        case RouteNames.profile:
-          return 8;
-        default:
-          return 1;
-      }
-    } else {
-      switch (location) {
-        case RouteNames.order:
-          return 0;
-        case RouteNames.queue:
-          return 1;
-        case RouteNames.history:
-          return 2;
-        case RouteNames.profile:
-          return 3;
-        default:
-          return 0;
-      }
+    switch (location) {
+      case RouteNames.kasirHome:
+      case RouteNames.ownerHome:
+      case RouteNames.order:
+        return 0;
+      case RouteNames.queue:
+        return 1;
+      case RouteNames.history:
+        return 2;
+      case RouteNames.profile:
+        return 3;
+      default:
+        return 0;
     }
   }
 
   List<BottomNavigationBarItem> _getItems() {
-    if (widget.user.isOwner) {
-      return const [
-        BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Order'),
-        BottomNavigationBarItem(icon: Icon(Icons.queue), label: 'Antrian'),
-        BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Riwayat'),
-        BottomNavigationBarItem(icon: Icon(Icons.menu_book), label: 'Menu'),
-        BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Kasir'),
-        BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Laporan'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Setelan'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-      ];
-    } else {
-      return const [
-        BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Order'),
-        BottomNavigationBarItem(icon: Icon(Icons.queue), label: 'Antrian'),
-        BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Riwayat'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
-      ];
-    }
+    return const [
+      BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Order'),
+      BottomNavigationBarItem(icon: Icon(Icons.queue), label: 'Antrian'),
+      BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Riwayat'),
+      BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
+    ];
   }
 
   void _onItemTapped(int index) {
-    if (widget.user.isOwner) {
-      switch (index) {
-        case 0:
-          context.go(RouteNames.order);
-          break;
-        case 1:
-          context.go(RouteNames.queue);
-          break;
-        case 2:
-          context.go(RouteNames.history);
-          break;
-        case 3:
-          context.go(RouteNames.menuManage);
-          break;
-        case 4:
-          context.go(RouteNames.kasirManage);
-          break;
-        case 5:
-          context.go(RouteNames.reports);
-          break;
-        case 6:
-          context.go(RouteNames.settings);
-          break;
-        case 7:
-          context.go(RouteNames.profile);
-          break;
-      }
-    } else {
-      switch (index) {
-        case 0:
-          context.go(RouteNames.order);
-          break;
-        case 1:
-          context.go(RouteNames.queue);
-          break;
-        case 2:
-          context.go(RouteNames.history);
-          break;
-        case 3:
-          context.go(RouteNames.profile);
-          break;
-      }
+    switch (index) {
+      case 0:
+        context.go(RouteNames.order);
+        break;
+      case 1:
+        context.go(RouteNames.queue);
+        break;
+      case 2:
+        context.go(RouteNames.history);
+        break;
+      case 3:
+        context.go(RouteNames.profile);
+        break;
     }
   }
 

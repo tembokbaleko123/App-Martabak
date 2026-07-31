@@ -44,13 +44,22 @@ class AuthViewSet(viewsets.GenericViewSet):
             'user': KasirSerializer(kasir).data,
         })
 
+    @action(detail=False, methods=['get'], url_path='login-users')
+    def login_users(self, request):
+        """
+        List kasir aktif untuk login screen (public - tanpa auth).
+        Hanya mengembalikan username dan role.
+        """
+        kasirs = Kasir.objects.filter(is_active=True).values('id', 'username', 'role')
+        return Response({'data': list(kasirs)})
+
     @action(detail=False, methods=['post'], url_path='change-pin')
     def change_pin(self, request):
         """
-        Ganti PIN sendiri (owner only).
+        Ganti PIN sendiri (semua user).
         """
-        if not request.user.is_authenticated or request.user.role != 'owner':
-            return Response({'error': 'Hanya owner yang bisa mengganti PIN'}, status=403)
+        if not request.user.is_authenticated:
+            return Response({'error': 'Not authenticated'}, status=401)
         serializer = ChangePinSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -71,15 +80,19 @@ class KasirViewSet(viewsets.ModelViewSet):
     ViewSet untuk CRUD kasir (owner only).
 
     Endpoints:
-    - GET /api/v1/accounts/kasirs/ - List semua kasir
+    - GET /api/v1/accounts/kasirs/ - List semua kasir (owner: semua, others: aktif saja)
     - POST /api/v1/accounts/kasirs/ - Tambah kasir baru
     - GET /api/v1/accounts/kasirs/{id}/ - Detail kasir
     - PATCH /api/v1/accounts/kasirs/{id}/ - Edit kasir
     - DELETE /api/v1/accounts/kasirs/{id}/ - Soft delete kasir
     - POST /api/v1/accounts/kasirs/{id}/reset-pin/ - Reset PIN kasir (owner only)
     """
-    queryset = Kasir.objects.filter(is_active=True)
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.role == 'owner':
+            return Kasir.objects.all()
+        return Kasir.objects.filter(is_active=True)
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -93,7 +106,8 @@ class KasirViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='reset-pin')
     def reset_pin(self, request, pk=None):
         """
-        Reset PIN kasir ke PIN acak 6 digit (owner only).
+        Reset PIN kasir (owner only).
+        Jika body ada 'new_pin' pakai itu (min 6 digit), kalau tidak generate random.
         """
         if request.user.role != 'owner':
             return Response({'error': 'Hanya owner yang bisa reset PIN'}, status=403)
@@ -101,8 +115,21 @@ class KasirViewSet(viewsets.ModelViewSet):
             kasir = self.get_queryset().get(pk=pk)
         except Kasir.DoesNotExist:
             return Response({'error': 'Kasir tidak ditemukan'}, status=404)
+
         import bcrypt
-        new_pin = ''.join(secrets.choice('0123456789') for _ in range(6))
+        import re
+        custom_pin = request.data.get('new_pin')
+
+        if custom_pin:
+            pin_str = str(custom_pin)
+            if len(pin_str) < 6 or not re.match(r'^\d+$', pin_str):
+                return Response({
+                    'error': 'PIN harus minimal 6 digit angka'
+                }, status=400)
+            new_pin = pin_str
+        else:
+            new_pin = ''.join(secrets.choice('0123456789') for _ in range(6))
+
         kasir.pin_hash = bcrypt.hashpw(new_pin.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         kasir.save(update_fields=['pin_hash'])
         return Response({

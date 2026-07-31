@@ -13,4 +13,5 @@ urlpatterns = [
     path('pin/', AuthViewSet.as_view({'post': 'pin_login'}), name='pin-login'),
     path('change-pin/', AuthViewSet.as_view({'post': 'change_pin'}), name='change-pin'),
     path('me/', AuthViewSet.as_view({'get': 'me'}), name='me'),
+    path('login-users/', AuthViewSet.as_view({'get': 'login_users'}), name='login-users'),
 ]

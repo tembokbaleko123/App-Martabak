@@ -14,7 +14,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-ganti-secret-key-di
 
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,192.168.1.16').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -120,8 +120,8 @@ REST_FRAMEWORK = {
         'core.throttles.LoginRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'login': '5/minute',
-        'api': '100/minute',
+        'login': '20/minute',
+        'api': '500/minute',
     },
     'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
 }
@@ -136,8 +136,26 @@ SIMPLE_JWT = {
 }
 
 # CORS
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5000',
+    'http://127.0.0.1:5000',
+    'http://10.0.2.2:8000',
+    'http://192.168.1.16:8000',
+    'http://192.168.1.16',
+]
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True  # Allow all for development
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'origin',
+    'user-agent',
+    'x-requested-with',
+]
 
 # GoQris
 GOQRIS_API_BASE = os.getenv('GOQRIS_API_BASE', 'https://api.goqris.web.id')

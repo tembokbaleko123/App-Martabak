@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/api/api_client.dart';
+import '../../../core/api/endpoints.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -18,21 +20,48 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final ApiClient _client = ApiClient();
   String? _selectedUsername;
-  String _pin = '';
   bool _showPinInput = false;
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _users = [];
 
-  final List<Map<String, dynamic>> _users = const [
-    {'username': 'owner', 'label': 'Owner', 'icon': Icons.admin_panel_settings},
-    {'username': 'Budi', 'label': 'Budi', 'icon': Icons.person},
-    {'username': 'Andi', 'label': 'Andi', 'icon': Icons.person},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadUsers();
+  }
+
+  Future<void> _loadUsers() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await _client.get(ApiEndpoints.loginUsers);
+      final data = response.data as Map<String, dynamic>;
+      final list = data['data'] as List<dynamic>;
+      final activeUsers = list
+          .map((e) => e as Map<String, dynamic>)
+          .map((e) {
+            final role = e['role'] as String;
+            return {
+              'username': e['username'] as String,
+              'label': e['username'] as String,
+              'icon': role == 'owner' ? Icons.admin_panel_settings : Icons.person,
+            };
+          })
+          .toList();
+      setState(() {
+        _users = activeUsers;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   void _onUserSelected(String username) {
     setState(() {
       _selectedUsername = username;
       _showPinInput = true;
-      _pin = '';
     });
   }
 
@@ -47,7 +76,6 @@ class _LoginScreenState extends State<LoginScreen> {
   void _onBackPressed() {
     setState(() {
       _showPinInput = false;
-      _pin = '';
     });
   }
 
@@ -63,13 +91,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 backgroundColor: AppColors.error,
               ),
             );
-            setState(() {
-              _pin = '';
-            });
           }
         },
         builder: (context, state) {
-          if (state is AuthLoading) {
+          if (state is AuthLoading || _isLoading) {
             return const LoadingIndicator(message: 'Memuat...');
           }
 

@@ -62,12 +62,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthChangePinRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    final currentState = state;
+    if (currentState is! AuthAuthenticated) return;
+
     try {
       await _authService.changePin(event.oldPin, event.newPin);
-      emit(AuthPinChangeSuccess());
+      emit(AuthPinChangeSuccess(currentState.user));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthPinChangeError(currentState.user, e.toString()));
     }
   }
 }

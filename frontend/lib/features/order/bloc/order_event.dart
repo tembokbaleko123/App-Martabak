@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import '../../../data/models/menu_model.dart';
-import '../../../data/models/order_model.dart';
 
 abstract class OrderEvent extends Equatable {
   const OrderEvent();

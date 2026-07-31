@@ -37,8 +37,8 @@ class PinLoginSerializer(serializers.Serializer):
 
 
 class ChangePinSerializer(serializers.Serializer):
-    old_pin = serializers.CharField(max_length=6, min_length=4, write_only=True)
-    new_pin = serializers.CharField(max_length=6, min_length=4, write_only=True)
+    old_pin = serializers.CharField(max_length=6, min_length=6, write_only=True)
+    new_pin = serializers.CharField(max_length=6, min_length=6, write_only=True)
 
     def validate_old_pin(self, value):
         user = self.context['request'].user
@@ -75,8 +75,6 @@ class ChangePinSerializer(serializers.Serializer):
         user = self.context['request'].user
         if not user.is_authenticated:
             raise PermissionError('User must be authenticated')
-        if getattr(user, 'role', None) != 'owner':
-            raise PermissionError('Only owner can change PIN')
         new_pin_hash = bcrypt.hashpw(
             self.validated_data['new_pin'].encode('utf-8'),
             bcrypt.gensalt()

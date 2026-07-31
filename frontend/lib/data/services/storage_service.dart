@@ -3,8 +3,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user_model.dart';
 
 class StorageService {
-  static final StorageService _instance = StorageService._internal();
+  static final StorageService _instance = StorageService._();
   factory StorageService() => _instance;
+  StorageService._();
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 

@@ -27,7 +27,7 @@ class ReportService:
         from zoneinfo import ZoneInfo
         wita_tz = ZoneInfo('Asia/Makassar')
         start_dt = datetime.combine(target_date, datetime.min.time())
-        start_dt = wita_tz.localize(start_dt)
+        start_dt = start_dt.replace(tzinfo=wita_tz)
         end_dt = start_dt + timedelta(days=1)
         return start_dt, end_dt
 

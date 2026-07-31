@@ -6,7 +6,7 @@ import os
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.16']
 
 # PostgreSQL untuk development
 DATABASES = {
@@ -26,6 +26,8 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:3000',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'http://192.168.1.16:8000',
+    'http://192.168.1.16',
 ]
 
 # Logging

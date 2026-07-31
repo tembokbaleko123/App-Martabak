@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/utils/currency_formatter.dart';
+import '../../../navigation/route_names.dart';
 import '../../../shared/widgets/loading_indicator.dart';
-import '../../../shared/widgets/error_widget.dart';
 import '../../../shared/widgets/app_card.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../auth/bloc/auth_event.dart';
@@ -16,39 +16,84 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.read<AuthBloc>().state;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil'),
-      ),
-      body: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          if (state is! AuthAuthenticated) {
-            return const LoadingIndicator();
-          }
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              children: [
-                _buildProfileHeader(state.user),
-                const SizedBox(height: AppSpacing.lg),
-                _buildMenuItem(
-                  icon: Icons.lock_outline,
-                  title: 'Ganti PIN',
-                  onTap: () => _showChangePinDialog(context),
-                ),
-                _buildMenuItem(
-                  icon: Icons.logout,
-                  title: 'Keluar',
-                  textColor: AppColors.error,
-                  onTap: () => _showLogoutDialog(context),
-                ),
-              ],
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthPinChangeSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('PIN berhasil diubah'),
+              backgroundColor: AppColors.success,
             ),
           );
-        },
+        } else if (state is AuthPinChangeError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal: ${state.errorMessage}'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Profil'),
+        ),
+        body: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            if (state is! AuthAuthenticated) {
+              return const LoadingIndicator();
+            }
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProfileHeader(state.user),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (state.user.isOwner) ...[
+                    Text('Manajemen', style: AppTypography.titleMedium),
+                    const SizedBox(height: AppSpacing.sm),
+                    _buildMenuItem(
+                      icon: Icons.menu_book,
+                      title: 'Kelola Menu',
+                      onTap: () => context.go(RouteNames.menuManage),
+                    ),
+                    _buildMenuItem(
+                      icon: Icons.people,
+                      title: 'Kelola Kasir',
+                      onTap: () => context.go(RouteNames.kasirManage),
+                    ),
+                    _buildMenuItem(
+                      icon: Icons.bar_chart,
+                      title: 'Laporan',
+                      onTap: () => context.go(RouteNames.reports),
+                    ),
+                    _buildMenuItem(
+                      icon: Icons.settings,
+                      title: 'Pengaturan',
+                      onTap: () => context.go(RouteNames.settings),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                  Text('Akun', style: AppTypography.titleMedium),
+                  const SizedBox(height: AppSpacing.sm),
+                  _buildMenuItem(
+                    icon: Icons.lock_outline,
+                    title: 'Ganti PIN',
+                    onTap: () => _showChangePinDialog(context),
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.logout,
+                    title: 'Keluar',
+                    textColor: AppColors.error,
+                    onTap: () => _showLogoutDialog(context),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -156,9 +201,6 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     );
                 Navigator.pop(dialogContext);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('PIN berhasil diubah')),
-                );
               },
               child: const Text('Simpan'),
             ),

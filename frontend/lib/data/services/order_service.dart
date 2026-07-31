@@ -61,8 +61,7 @@ class OrderService {
 
   Future<List<OrderListItem>> getQueue() async {
     final response = await _client.get(ApiEndpoints.ordersQueue);
-    final data = response.data as Map<String, dynamic>;
-    final list = data['data'] as List<dynamic>;
+    final list = response.data as List<dynamic>;
     return list.map((e) => OrderListItem.fromJson(e as Map<String, dynamic>)).toList();
   }
 

@@ -8,7 +8,6 @@ import '../../../data/models/user_model.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_widget.dart';
 import '../../../shared/widgets/empty_state.dart';
-import '../../../shared/widgets/app_card.dart';
 
 class KasirManageScreen extends StatefulWidget {
   const KasirManageScreen({super.key});
@@ -94,7 +93,7 @@ class _KasirManageScreenState extends State<KasirManageScreen> {
           final kasir = _kasirs[index];
           return _KasirCard(
             kasir: kasir,
-            onResetPin: () => _resetPin(kasir),
+            onResetPin: () => _showResetPinDialog(kasir),
             onToggleActive: () => _toggleActive(kasir),
           );
         },
@@ -138,6 +137,7 @@ class _KasirManageScreenState extends State<KasirManageScreen> {
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(dialogContext);
+                final messenger = ScaffoldMessenger.of(context);
                 try {
                   await _client.post(
                     ApiEndpoints.kasirs,
@@ -149,11 +149,9 @@ class _KasirManageScreenState extends State<KasirManageScreen> {
                   );
                   _loadKasirs();
                 } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
-                    );
-                  }
+                  messenger.showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+                  );
                 }
               },
               child: const Text('Simpan'),
@@ -164,26 +162,153 @@ class _KasirManageScreenState extends State<KasirManageScreen> {
     );
   }
 
-  Future<void> _resetPin(UserModel kasir) async {
+  void _showResetPinDialog(UserModel kasir) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Reset PIN ${kasir.username}'),
+          content: const Text('Pilih metode reset PIN:'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _resetPinRandom(kasir);
+              },
+              child: const Text('Random'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                _showManualPinDialog(kasir);
+              },
+              child: const Text('Input Manual'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _resetPinRandom(UserModel kasir) async {
+    final messenger = ScaffoldMessenger.of(context);
     try {
-      await _client.post(
+      final response = await _client.post(
         ApiEndpoints.resetPin.replaceAll('{id}', kasir.id.toString()),
       );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('PIN ${kasir.username} berhasil direset ke 1234')),
-        );
-      }
+      final data = response.data as Map<String, dynamic>;
+      final newPin = data['new_pin'] as String;
+      messenger.showSnackBar(
+        SnackBar(content: Text('PIN ${kasir.username} berhasil direset ke $newPin')),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+      messenger.showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+      );
+    }
+  }
+
+  void _showManualPinDialog(UserModel kasir) {
+    final pinController = TextEditingController();
+    final confirmController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Input PIN Manual - ${kasir.username}'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: pinController,
+                decoration: const InputDecoration(
+                  labelText: 'PIN Baru (6 digit)',
+                  hintText: 'Contoh: 123456',
+                ),
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                obscureText: true,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: confirmController,
+                decoration: const InputDecoration(
+                  labelText: 'Konfirmasi PIN',
+                  hintText: 'Masukkan ulang PIN',
+                ),
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final pin = pinController.text;
+                final confirm = confirmController.text;
+
+                if (pin.length != 6) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('PIN harus 6 digit'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                  return;
+                }
+
+                if (pin != confirm) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('PIN tidak cocok'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                  return;
+                }
+
+                Navigator.pop(dialogContext);
+                await _resetPinManual(kasir, pin);
+              },
+              child: const Text('Simpan'),
+            ),
+          ],
         );
-      }
+      },
+    );
+  }
+
+  Future<void> _resetPinManual(UserModel kasir, String newPin) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final response = await _client.post(
+        ApiEndpoints.resetPin.replaceAll('{id}', kasir.id.toString()),
+        data: {'new_pin': newPin},
+      );
+      final data = response.data as Map<String, dynamic>;
+      final savedPin = data['new_pin'] as String;
+      messenger.showSnackBar(
+        SnackBar(content: Text('PIN ${kasir.username} berhasil direset ke $savedPin')),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+      );
     }
   }
 
   Future<void> _toggleActive(UserModel kasir) async {
+    final messenger = ScaffoldMessenger.of(context);
     try {
       await _client.patch(
         '${ApiEndpoints.kasirs}${kasir.id}/',
@@ -191,11 +316,9 @@ class _KasirManageScreenState extends State<KasirManageScreen> {
       );
       _loadKasirs();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
-        );
-      }
+      messenger.showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+      );
     }
   }
 }
@@ -274,7 +397,13 @@ class _KasirCard extends StatelessWidget {
                 Switch(
                   value: kasir.isActive,
                   onChanged: (_) => onToggleActive(),
-                  activeColor: AppColors.primary,
+                  activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+                  thumbColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return AppColors.primary;
+                    }
+                    return null;
+                  }),
                 ),
               ],
             ],

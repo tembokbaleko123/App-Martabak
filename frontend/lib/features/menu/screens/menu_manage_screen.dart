@@ -9,7 +9,6 @@ import '../../../data/models/menu_model.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_widget.dart';
 import '../../../shared/widgets/empty_state.dart';
-import '../../../shared/widgets/app_card.dart';
 
 class MenuManageScreen extends StatefulWidget {
   const MenuManageScreen({super.key});
@@ -38,8 +37,7 @@ class _MenuManageScreenState extends State<MenuManageScreen> {
 
     try {
       final response = await _client.get(ApiEndpoints.menusAll);
-      final data = response.data as Map<String, dynamic>;
-      final list = data['data'] as List<dynamic>;
+      final list = response.data as List<dynamic>;
       setState(() {
         _menus = list.map((e) => MenuModel.fromJson(e as Map<String, dynamic>)).toList();
         _isLoading = false;
@@ -151,18 +149,25 @@ class _MenuManageScreenState extends State<MenuManageScreen> {
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    DropdownButtonFormField<String>(
-                      value: selectedCategory,
-                      decoration: const InputDecoration(labelText: 'Kategori'),
-                      items: MenuCategory.values.map((cat) {
-                        return DropdownMenuItem(
+                    Text(
+                      'Kategori',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    SegmentedButton<String>(
+                      segments: MenuCategory.values.map((cat) {
+                        return ButtonSegment(
                           value: cat.value,
-                          child: Text(cat.label),
+                          label: Text(cat.label),
                         );
                       }).toList(),
-                      onChanged: (value) {
+                      selected: {selectedCategory},
+                      onSelectionChanged: (Set<String> selection) {
                         setDialogState(() {
-                          selectedCategory = value!;
+                          selectedCategory = selection.first;
                         });
                       },
                     ),
@@ -206,6 +211,7 @@ class _MenuManageScreenState extends State<MenuManageScreen> {
                 ElevatedButton(
                   onPressed: () async {
                     Navigator.pop(dialogContext);
+                    final messenger = ScaffoldMessenger.of(context);
                     try {
                       await _client.post(
                         ApiEndpoints.menus,
@@ -218,11 +224,9 @@ class _MenuManageScreenState extends State<MenuManageScreen> {
                       );
                       _loadMenus();
                     } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
-                        );
-                      }
+                      messenger.showSnackBar(
+                        SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+                      );
                     }
                   },
                   child: const Text('Simpan'),
@@ -270,6 +274,7 @@ class _MenuManageScreenState extends State<MenuManageScreen> {
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(dialogContext);
+                final messenger = ScaffoldMessenger.of(context);
                 try {
                   await _client.patch(
                     '${ApiEndpoints.menus}${menu.id}/',
@@ -280,11 +285,9 @@ class _MenuManageScreenState extends State<MenuManageScreen> {
                   );
                   _loadMenus();
                 } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
-                    );
-                  }
+                  messenger.showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+                  );
                 }
               },
               child: const Text('Simpan'),
@@ -379,7 +382,13 @@ class _MenuCard extends StatelessWidget {
               Switch(
                 value: menu.isActive,
                 onChanged: (_) => onToggleActive(),
-                activeColor: AppColors.primary,
+                activeTrackColor: AppColors.primary.withValues(alpha: 0.5),
+                thumbColor: WidgetStateProperty.resolveWith((states) {
+                  if (states.contains(WidgetState.selected)) {
+                    return AppColors.primary;
+                  }
+                  return null;
+                }),
               ),
               PopupMenuButton(
                 itemBuilder: (context) => [

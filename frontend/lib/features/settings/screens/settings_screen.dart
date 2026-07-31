@@ -8,6 +8,8 @@ import '../../../core/theme/app_typography.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_widget.dart';
 import '../../../shared/widgets/app_card.dart';
+import '../../auth/bloc/auth_bloc.dart';
+import '../../auth/bloc/auth_state.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -30,6 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadSettings() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _error = null;
@@ -38,6 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final response = await _client.get(ApiEndpoints.settings);
       final data = response.data as Map<String, dynamic>;
+      if (!mounted) return;
       setState(() {
         _shopName = data['goqris_project_name'] as String? ?? '';
         _isLoading = false;
@@ -45,6 +49,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       _loadGoqrisStatus();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -56,10 +61,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       final response = await _client.get(ApiEndpoints.goqrisProfile);
       final data = response.data as Map<String, dynamic>;
+      if (!mounted) return;
       setState(() {
         _goqrisStatus = data['status'] as String? ?? 'unknown';
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _goqrisStatus = 'error';
       });

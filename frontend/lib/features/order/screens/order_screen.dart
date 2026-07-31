@@ -5,12 +5,11 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/currency_formatter.dart';
-import '../../../data/models/menu_model.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_widget.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../auth/bloc/auth_state.dart';
-import '../../../navigation/app_router.dart';
+import '../../../navigation/route_names.dart';
 import '../bloc/order_bloc.dart';
 import '../bloc/order_event.dart';
 import '../bloc/order_state.dart';
@@ -65,7 +64,7 @@ class _OrderScreenState extends State<OrderScreen> {
             );
           } else if (state is OrderQrGenerated) {
             context.push(
-              RouteNames.order + '/qr',
+              '${RouteNames.order}/qr',
               extra: {
                 'order_id': state.order.id,
                 'qr_string': state.order.qrString,

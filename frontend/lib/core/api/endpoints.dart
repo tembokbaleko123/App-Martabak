@@ -1,13 +1,14 @@
 class ApiEndpoints {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:8000/api/v1',
+    defaultValue: 'http://192.168.1.16:8000/api/v1',
   );
 
   static const String health = '/health/';
   static const String pinLogin = '/accounts/pin/';
   static const String changePin = '/accounts/change-pin/';
   static const String me = '/accounts/me/';
+  static const String loginUsers = '/accounts/login-users/';
   static const String kasirs = '/accounts/kasirs/';
   static const String resetPin = '/accounts/kasirs/{id}/reset-pin/';
 

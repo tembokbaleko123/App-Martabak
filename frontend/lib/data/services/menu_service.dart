@@ -14,8 +14,7 @@ class MenuService {
 
   Future<List<MenuModel>> getAllMenus() async {
     final response = await _client.get(ApiEndpoints.menusAll);
-    final data = response.data as Map<String, dynamic>;
-    final list = data['data'] as List<dynamic>;
+    final list = response.data as List<dynamic>;
     return list.map((e) => MenuModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
