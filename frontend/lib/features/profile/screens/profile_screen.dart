@@ -74,6 +74,11 @@ class ProfileScreen extends StatelessWidget {
                       title: 'Pengaturan',
                       onTap: () => context.go(RouteNames.settings),
                     ),
+                    _buildMenuItem(
+                      icon: Icons.inventory_2_outlined,
+                      title: 'Bahan Baku & Laba',
+                      onTap: () => context.go(RouteNames.rawMaterials),
+                    ),
                     const SizedBox(height: AppSpacing.lg),
                   ],
                   Text('Akun', style: AppTypography.titleMedium),

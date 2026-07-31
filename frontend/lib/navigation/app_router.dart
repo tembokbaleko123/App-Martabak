@@ -14,6 +14,9 @@ import '../features/settings/screens/settings_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/menu/screens/menu_manage_screen.dart';
 import '../features/menu/screens/kasir_manage_screen.dart';
+import '../features/raw_materials/screens/raw_materials_screen.dart';
+import '../features/raw_materials/screens/add_cost_entry_screen.dart';
+import '../features/raw_materials/screens/cost_entry_detail_screen.dart';
 import 'route_names.dart';
 
 class AppRouter {
@@ -103,6 +106,21 @@ class AppRouter {
               expiresAt: extra?['expires_at'] as DateTime?,
               totalAmount: extra?['total_amount'] as int,
             );
+          },
+        ),
+        GoRoute(
+          path: RouteNames.rawMaterials,
+          builder: (context, state) => const RawMaterialsScreen(),
+        ),
+        GoRoute(
+          path: '${RouteNames.rawMaterials}/add',
+          builder: (context, state) => const AddCostEntryScreen(),
+        ),
+        GoRoute(
+          path: '${RouteNames.rawMaterials}/detail/:id',
+          builder: (context, state) {
+            final id = int.parse(state.pathParameters['id']!);
+            return CostEntryDetailScreen(entryId: id);
           },
         ),
       ],

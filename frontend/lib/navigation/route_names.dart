@@ -12,4 +12,5 @@ class RouteNames {
   static const String kasirManage = '/kasir-manage';
   static const String reports = '/reports';
   static const String settings = '/settings';
+  static const String rawMaterials = '/raw-materials';
 }

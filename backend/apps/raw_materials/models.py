@@ -93,6 +93,12 @@ class MaterialCostItem(models.Model):
         decimal_places=2,
         help_text='Jumlah bahan'
     )
+    unit = models.CharField(
+        max_length=20,
+        blank=True,
+        default='',
+        help_text='Satuan (contoh: kg, gram, butir, liter, pcs, zak, dll)'
+    )
     price_per_unit = models.IntegerField(
         help_text='Harga per unit'
     )
@@ -108,7 +114,7 @@ class MaterialCostItem(models.Model):
         verbose_name_plural = 'Material Cost Items'
 
     def __str__(self):
-        return f'{self.material_name} x {self.quantity}'
+        return f'{self.material_name} x {self.quantity} {self.unit}'
 
     def save(self, *args, **kwargs):
         self.subtotal = int(float(self.quantity) * self.price_per_unit)
