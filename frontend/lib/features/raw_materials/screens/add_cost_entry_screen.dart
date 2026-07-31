@@ -51,10 +51,11 @@ class _AddCostEntryScreenState extends State<AddCostEntryScreen> {
 
   void _removeItem(int index) {
     if (_items.length > 1) {
+      final item = _items[index];
       setState(() {
-        _items[index].dispose();
         _items.removeAt(index);
       });
+      item.dispose();
     }
   }
 
@@ -228,10 +229,10 @@ class _CostItem {
   final unitController = TextEditingController();
   final priceController = TextEditingController();
 
-  int get quantity => int.tryParse(quantityController.text) ?? 0;
+  double get quantity => double.tryParse(quantityController.text) ?? 0;
   String get unit => unitController.text;
   int get pricePerUnit => int.tryParse(priceController.text) ?? 0;
-  int get subtotal => quantity * pricePerUnit;
+  int get subtotal => (quantity * pricePerUnit).round();
   bool get isValid => nameController.text.isNotEmpty && quantity > 0 && pricePerUnit > 0;
   String get name => nameController.text;
 
@@ -301,7 +302,7 @@ class _CostItemWidget extends StatelessWidget {
                   decoration: const InputDecoration(
                     labelText: 'Qty',
                   ),
-                  keyboardType: TextInputType.number,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (_) => onChanged(),
                 ),
               ),

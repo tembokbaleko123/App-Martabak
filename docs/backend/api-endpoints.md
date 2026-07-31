@@ -4,6 +4,21 @@ Base URL: `http://localhost:8000/api/v1`
 
 ## Authentication
 
+### GET `/accounts/login-users/` (Public)
+List kasir aktif untuk login screen (public - no auth required).
+
+**Response:**
+```json
+{
+    "data": [
+        {"id": 1, "username": "owner", "role": "owner"},
+        {"id": 2, "username": "Budi", "role": "kasir"}
+    ]
+}
+```
+
+---
+
 ### POST `/accounts/pin/`
 Login dengan username dan PIN.
 
@@ -677,7 +692,7 @@ List semua cost entries.
             "date_from": "2026-07-28",
             "date_to": "2026-07-30",
             "items": [
-                {"id": 1, "material_name": "Tepung", "quantity": "8.00", "price_per_unit": 15000, "subtotal": 120000}
+                {"id": 1, "material_name": "Tepung", "quantity": "8.00", "unit": "kg", "price_per_unit": 15000, "subtotal": 120000}
             ],
             "total_cost": 168000,
             "total_revenue": 500000,
@@ -704,8 +719,8 @@ Buat cost entry baru (input biaya bahan baku).
     "date_from": "2026-07-28",
     "date_to": "2026-07-30",
     "items": [
-        {"material_name": "Tepung", "quantity": "8", "price_per_unit": 15000},
-        {"material_name": "Gula", "quantity": "4", "price_per_unit": 12000}
+        {"material_name": "Tepung", "quantity": "8", "unit": "kg", "price_per_unit": 15000},
+        {"material_name": "Gula", "quantity": "4", "unit": "kg", "price_per_unit": 12000}
     ],
     "notes": "Bahan baku habis untuk periode ini"
 }
@@ -718,8 +733,8 @@ Buat cost entry baru (input biaya bahan baku).
     "date_from": "2026-07-28",
     "date_to": "2026-07-30",
     "items": [
-        {"id": 1, "material_name": "Tepung", "quantity": "8.00", "price_per_unit": 15000, "subtotal": 120000},
-        {"id": 2, "material_name": "Gula", "quantity": "4.00", "price_per_unit": 12000, "subtotal": 48000}
+        {"id": 1, "material_name": "Tepung", "quantity": "8.00", "unit": "kg", "price_per_unit": 15000, "subtotal": 120000},
+        {"id": 2, "material_name": "Gula", "quantity": "4.00", "unit": "kg", "price_per_unit": 12000, "subtotal": 48000}
     ],
     "total_cost": 168000,
     "total_revenue": 500000,
@@ -734,7 +749,7 @@ Buat cost entry baru (input biaya bahan baku).
 **Notes:**
 - `total_revenue` dihitung otomatis dari orders (paid) dalam range tanggal
 - `profit` = `total_revenue` - `total_cost`
-- Material name bebas (free text)
+- Material name dan unit bebas (free text) - owner bisa isi apa saja (kg, gram, butir, zak, dll)
 
 ---
 
@@ -758,7 +773,7 @@ Edit cost entry.
     "date_from": "2026-07-28",
     "date_to": "2026-07-31",
     "items": [
-        {"material_name": "Tepung", "quantity": "10", "price_per_unit": 15000}
+        {"material_name": "Tepung", "quantity": "10", "unit": "kg", "price_per_unit": 15000}
     ],
     "notes": "Updated"
 }
@@ -835,8 +850,8 @@ Hapus cost entry.
 
 | Endpoint | Rate |
 |----------|------|
-| `/accounts/pin/` | 5/minute/IP |
-| Other API | 100/minute/user |
+| `/accounts/pin/` | 20/minute/IP |
+| Other API | 500/minute/user |
 
 ---
 
