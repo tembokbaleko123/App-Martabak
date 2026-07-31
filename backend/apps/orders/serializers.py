@@ -27,7 +27,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderItemCreateSerializer(serializers.Serializer):
     menu_id = serializers.IntegerField()
-    qty = serializers.IntegerField(min_value=1)
+    qty = serializers.IntegerField(min_value=1, max_value=999)
 
     def validate(self, attrs):
         from apps.menus.models import Menu
@@ -76,6 +76,14 @@ class CreateOrderSerializer(serializers.Serializer):
             raise serializers.ValidationError('Minimal harus ada 1 item')
         return value
 
+    def validate_note(self, value):
+        if value:
+            import re
+            clean = re.sub(r'<[^>]*>', '', value)
+            clean = clean.strip()
+            return clean
+        return value
+
     def create(self, attrs):
         from datetime import date, timedelta
         from django.utils import timezone
@@ -100,7 +108,7 @@ class CreateOrderSerializer(serializers.Serializer):
                 raise ValueError('Failed to generate unique ref_id after 10 attempts')
 
             total_amount = 0
-            order_items = []
+            order_items_dict = {}
 
             for item_data in attrs['items']:
                 menu = Menu.objects.get(id=item_data['menu_id'])
@@ -108,12 +116,17 @@ class CreateOrderSerializer(serializers.Serializer):
                 price = menu.price
                 subtotal = qty * price
                 total_amount += subtotal
-                order_items.append({
-                    'menu': menu,
-                    'qty': qty,
-                    'price_at_order': price,
-                    'subtotal': subtotal,
-                })
+
+                if menu.id in order_items_dict:
+                    order_items_dict[menu.id]['qty'] += qty
+                    order_items_dict[menu.id]['subtotal'] = order_items_dict[menu.id]['qty'] * price
+                else:
+                    order_items_dict[menu.id] = {
+                        'menu': menu,
+                        'qty': qty,
+                        'price_at_order': price,
+                        'subtotal': subtotal,
+                    }
 
             order = Order.objects.create(
                 ref_id=ref_id,
@@ -125,7 +138,7 @@ class CreateOrderSerializer(serializers.Serializer):
                 payment_method_label=payment_method_label,
             )
 
-            for item_data in order_items:
+            for item_data in order_items_dict.values():
                 OrderItem.objects.create(order=order, **item_data)
 
             if payment_method == 'cash':

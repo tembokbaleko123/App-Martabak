@@ -1,9 +1,10 @@
 """
 Services untuk reports app.
 """
-from datetime import date
+from datetime import date, datetime, timedelta
 from django.db.models import Sum, Count, Avg
 from django.db.models.functions import TruncDate
+from django.utils import timezone
 from apps.orders.models import Order, OrderItem
 
 
@@ -11,6 +12,24 @@ class ReportService:
     """
     Service untuk generate laporan.
     """
+
+    @staticmethod
+    def _get_date_range(target_date: date):
+        """
+        Convert date to datetime range in WITA timezone (UTC+8).
+
+        Args:
+            target_date: Date in WITA timezone
+
+        Returns:
+            Tuple of (start_datetime, end_datetime) in WITA timezone
+        """
+        from zoneinfo import ZoneInfo
+        wita_tz = ZoneInfo('Asia/Makassar')
+        start_dt = datetime.combine(target_date, datetime.min.time())
+        start_dt = wita_tz.localize(start_dt)
+        end_dt = start_dt + timedelta(days=1)
+        return start_dt, end_dt
 
     @staticmethod
     def daily_report(target_date: date) -> dict:
@@ -23,8 +42,11 @@ class ReportService:
         Returns:
             Dict dengan summary, per_kasir, top_menus
         """
+        start_dt, end_dt = ReportService._get_date_range(target_date)
+
         orders = Order.objects.filter(
-            created_at__date=target_date,
+            created_at__gte=start_dt,
+            created_at__lt=end_dt,
             status__in=['paid', 'pending', 'expired']
         )
 
@@ -103,9 +125,12 @@ class ReportService:
         Returns:
             List of top menus
         """
+        start_dt, end_dt = ReportService._get_date_range(to_date)
+        from_start, _ = ReportService._get_date_range(from_date)
+
         orders = Order.objects.filter(
-            created_at__date__gte=from_date,
-            created_at__date__lte=to_date,
+            created_at__gte=from_start,
+            created_at__lt=end_dt,
             status='paid'
         )
 
@@ -142,8 +167,11 @@ class ReportService:
         Returns:
             List of kasir performance
         """
+        start_dt, end_dt = ReportService._get_date_range(target_date)
+
         orders = Order.objects.filter(
-            created_at__date=target_date,
+            created_at__gte=start_dt,
+            created_at__lt=end_dt,
             status__in=['paid', 'pending', 'expired']
         )
 

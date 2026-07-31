@@ -30,11 +30,11 @@ class ReportViewSet(viewsets.GenericViewSet):
     def _parse_date(self, date_str):
         """Parse date string to date object."""
         if not date_str:
-            return date.today()
+            return None
         try:
             return datetime.strptime(date_str, '%Y-%m-%d').date()
         except ValueError:
-            return date.today()
+            return None
 
     @action(detail=False, methods=['get'], url_path='daily')
     def daily(self, request):
@@ -46,6 +46,12 @@ class ReportViewSet(viewsets.GenericViewSet):
         """
         date_str = request.query_params.get('date')
         target_date = self._parse_date(date_str)
+
+        if target_date is None:
+            return Response({
+                'status': False,
+                'message': 'Format date harus YYYY-MM-DD',
+            }, status=400)
 
         data = ReportService.daily_report(target_date)
         serializer = DailyReportSerializer(data)
@@ -110,6 +116,12 @@ class ReportViewSet(viewsets.GenericViewSet):
         date_str = request.query_params.get('date')
         target_date = self._parse_date(date_str)
 
+        if target_date is None:
+            return Response({
+                'status': False,
+                'message': 'Format date harus YYYY-MM-DD',
+            }, status=400)
+
         data = ReportService.kasir_performance(target_date)
         serializer = KasirPerformanceSerializer(data, many=True)
         return Response({
@@ -143,6 +155,12 @@ class ReportViewSet(viewsets.GenericViewSet):
             return Response({
                 'status': False,
                 'message': 'Format date harus YYYY-MM-DD',
+            }, status=400)
+
+        if from_date > to_date:
+            return Response({
+                'status': False,
+                'message': 'Parameter from harus <= to',
             }, status=400)
 
         data = ReportService.profit_report(from_date, to_date)

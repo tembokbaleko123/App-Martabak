@@ -1,8 +1,11 @@
 """
 Celery tasks untuk orders app.
 """
+import logging
 from celery import shared_task
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task
@@ -29,12 +32,23 @@ def check_goqris_payment(order_id):
 
     try:
         status_data = goqris_service.check_status(order.ref_id)
-        if status_data.get('paid'):
+
+        paid = status_data.get('paid', False)
+        payment_status = status_data.get('payment_status', '')
+
+        if paid or payment_status == 'paid':
             order.status = 'paid'
-            order.paid_at = timezone.now()
+            paid_at = status_data.get('paid_at')
+            if paid_at:
+                from dateutil.parser import parse as parse_datetime
+                order.paid_at = parse_datetime(paid_at)
+            else:
+                order.paid_at = timezone.now()
             order.save(update_fields=['status', 'paid_at', 'updated_at'])
-    except Exception:
-        pass
+            logger.info(f'[CELERY] Payment confirmed for order {order.ref_id}')
+    except Exception as e:
+        logger.exception(f'[CELERY] check_goqris_payment failed for order {order_id}: {e}')
+        raise
 
 
 @shared_task

@@ -109,6 +109,12 @@ class OrderItem(models.Model):
         db_table = 'order_items'
         verbose_name = 'Order Item'
         verbose_name_plural = 'Order Items'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['order', 'menu'],
+                name='unique_menu_per_order'
+            )
+        ]
 
     def __str__(self):
         return f'{self.menu.name} x {self.qty}'

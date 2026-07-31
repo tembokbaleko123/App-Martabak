@@ -1,6 +1,7 @@
 """
 Custom exceptions untuk App Martabak.
 """
+from django.conf import settings
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,11 +13,20 @@ def custom_exception_handler(exc, context):
     {
         "status": false,
         "message": "Error message",
-        "errors": {...}
+        "errors": {...}  # Only in DEBUG mode
     }
     """
-    # Handle GoQrisException
     if isinstance(exc, GoQrisException):
+        return Response(
+            {
+                'status': False,
+                'message': exc.message,
+                'errors': None,
+            },
+            status=exc.status_code
+        )
+
+    if isinstance(exc, PaymentException):
         return Response(
             {
                 'status': False,
@@ -41,7 +51,7 @@ def custom_exception_handler(exc, context):
         custom_response_data = {
             'status': False,
             'message': message,
-            'errors': response.data,
+            'errors': response.data if settings.DEBUG else None,
         }
         response.data = custom_response_data
 

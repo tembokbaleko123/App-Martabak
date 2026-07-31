@@ -108,16 +108,18 @@ class OrderViewSet(viewsets.GenericViewSet):
             if order.status == 'pending' and not is_expired:
                 try:
                     goqris_data = goqris_service.check_status(order.ref_id)
+
+                    paid = goqris_data.get('paid', False)
                     payment_status = goqris_data.get('payment_status', '')
 
-                    if payment_status == 'paid':
+                    if paid or payment_status == 'paid':
                         order.status = 'paid'
                         paid_at = goqris_data.get('paid_at')
                         if paid_at:
                             order.paid_at = parse_datetime(paid_at)
                         order.save(update_fields=['status', 'paid_at', 'updated_at'])
                         logger.info(f'[ORDER] Payment confirmed via GoQris: ref_id={order.ref_id}')
-                    elif payment_status == 'expired':
+                    elif payment_status == 'expired' or goqris_data.get('expired'):
                         order.status = 'expired'
                         order.save(update_fields=['status', 'updated_at'])
                         logger.info(f'[ORDER] Payment expired via GoQris: ref_id={order.ref_id}')
