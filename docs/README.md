@@ -7,6 +7,7 @@ Dokumentasi untuk aplikasi kasir martabak dengan GoQris QRIS payment.
 ```
 docs/
 ├── README.md              # (this file) - overview & navigation
+├── FLUTTER.md            # Flutter app documentation
 ├── agents.md              # Guide untuk AI coding agents
 ├── backend/
 │   ├── README.md          # Backend overview
@@ -26,13 +27,21 @@ docs/
 
 ## Quick Links
 
+### Flutter (Frontend)
+- [Flutter App Documentation](FLUTTER.md) — Clean Architecture + MVC, BLoC, UI/UX guidelines
+- [Frontend README](frontend/README.md) — Frontend overview
+
+### Backend
 - [Backend Setup](backend/setup.md)
 - [API Endpoints](backend/api-endpoints.md)
 - [Data Models](backend/models.md)
 - ✅ **[Backend Audit Report - Round 1](backend/BACKEND_AUDIT.md)** — 15 bugs, all fixed
 - ✅ **[Backend Audit Report - Round 2](backend/BACKEND_AUDIT_ROUND2.md)** — 10 bugs, all fixed
 - ✅ **[Backend Audit Report - Round 3](backend/BACKEND_AUDIT_ROUND3.md)** — 8 bugs, all fixed
+
+### Other
 - [Postman Collection](../postman/App-Martabak-API.json)
+- [Deployment Guide](deployment/README.md)
 
 ## License
 
@@ -40,10 +49,11 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Backend | Django 5.x + DRF |
-| Database | PostgreSQL |
-| Task Queue | Celery + Redis |
-| Payment | GoQris QRIS |
-| Frontend | Flutter (planned) |
+| Layer | Technology | Status |
+|-------|------------|--------|
+| Backend | Django 5.x + DRF | ✅ Complete |
+| Database | PostgreSQL | ✅ Complete |
+| Task Queue | Celery + Redis | ✅ Complete |
+| Payment | GoQris QRIS | ✅ Complete |
+| Frontend | Flutter (Android) | 🚧 In Progress |
+| Backend Bugs | 33 bugs fixed | ✅ Complete |

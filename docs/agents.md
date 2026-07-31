@@ -47,6 +47,8 @@ backend/
 
 ## Phase Progress
 
+### Backend — All Complete ✅
+
 | Phase | Status | Documentation |
 |-------|--------|---------------|
 | 1. Database & Models | ✅ Complete | `docs/backend/models.md` |
@@ -56,7 +58,19 @@ backend/
 | 5. GoQris Payment | ✅ Complete | `docs/backend/api-endpoints.md` |
 | 6. Reports | ✅ Complete | `docs/backend/api-endpoints.md` |
 | 7. Profit Tracking | ✅ Complete | `docs/backend/api-endpoints.md` |
-| 8. Flutter App | ⏳ Pending | `docs/frontend/README.md` |
+| **Backend Bugs Fixed** | ✅ 33 bugs | 3 audit rounds |
+
+### Frontend — In Progress 🚧
+
+| Phase | Status | Documentation |
+|-------|--------|---------------|
+| Flutter Documentation | ✅ Complete | `docs/FLUTTER.md` |
+| Flutter Scaffolding | ⏳ Pending | `frontend/` |
+| Auth Feature | ⏳ Pending | Flutter implementation |
+| Order Feature | ⏳ Pending | Flutter implementation |
+| Menu Feature | ⏳ Pending | Flutter implementation |
+| Queue Feature | ⏳ Pending | Flutter implementation |
+| Reports Feature | ⏳ Pending | Flutter implementation |
 
 ## Default Test Credentials
 
@@ -124,8 +138,63 @@ See `docs/backend/setup.md` for full list.
 
 Development: `http://localhost:8000/api/v1`
 
+## Flutter Architecture
+
+Project Flutter menggunakan **Clean Architecture + MVC** pattern. Lihat `docs/FLUTTER.md` untuk detail lengkap.
+
+### Frontend Structure
+```
+frontend/lib/
+├── core/                    # Shared: API client, theme, utils
+├── shared/                  # Shared: widgets, extensions
+├── data/                    # Data layer: models, repositories, services
+├── features/               # Feature modules (MVC per feature)
+│   ├── auth/              # Auth feature
+│   ├── menu/              # Menu feature
+│   ├── order/             # Order feature
+│   ├── queue/             # Queue feature
+│   ├── history/           # History feature
+│   ├── reports/           # Reports feature
+│   └── profile/           # Profile feature
+└── navigation/             # GoRouter configuration
+```
+
+### Flutter Coding Rules (WAJIB DIIKUTI)
+
+1. **Clean Architecture + MVC**
+   - Model: `models/` + `repositories/`
+   - View: `screens/` + `widgets/`
+   - Controller: `bloc/`
+
+2. **DRY (Don't Repeat Yourself)**
+   - Shared code di `core/` atau `shared/`
+   - Buat widget reusable untuk komponen UI yang sering dipakai
+   - Pakai extensions untuk helper methods
+
+3. **Refactor Sering**
+   - File max 200 baris
+   - Fungsi max 30 baris
+   - Kalau duplicated code muncul 2+, extract ke shared
+
+4. **Feature-First Structure**
+   - Setiap feature punya folder sendiri: `models/bloc/screens/widgets/repositories`
+   - Gak boleh mixed (semua models di 1 folder)
+
+5. **State Management: flutter_bloc**
+   - Pakai BLoC pattern untuk semua state management
+   - Tiap feature punya BLoC sendiri
+
+6. **Libraries Reference**
+   - Pakai libraries dari [awesome-flutter](https://github.com/Solido/awesome-flutter)
+   - flutter_bloc, dio, flutter_secure_storage, qr_flutter, shimmer, flutter_animate
+
 ## Related Documentation
 
+### Flutter
+- [Flutter App Documentation](FLUTTER.md) — **WAJIB BACA** sebelum coding Flutter
+- [Frontend README](frontend/README.md)
+
+### Backend
 - [Backend Setup](backend/setup.md)
 - [API Endpoints](backend/api-endpoints.md)
 - [Data Models](backend/models.md)
