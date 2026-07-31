@@ -26,6 +26,12 @@ class Menu(models.Model):
     price = models.BigIntegerField(help_text='Harga dalam rupiah')
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     emoji = models.CharField(max_length=10, default='🥞')
+    image = models.ImageField(
+        upload_to='menus/',
+        null=True,
+        blank=True,
+        help_text='Gambar menu (optional)'
+    )
     is_active = models.BooleanField(default=True)
     sort_order = models.IntegerField(default=0)
 
@@ -36,7 +42,13 @@ class Menu(models.Model):
         db_table = 'menus'
         verbose_name = 'Menu'
         verbose_name_plural = 'Menu'
-        ordering = ['sort_order', 'name']
+        ordering = ['category', 'sort_order', 'name']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['category', 'sort_order'],
+                name='unique_sort_order_per_category'
+            )
+        ]
 
     def __str__(self):
         return f'{self.emoji} {self.name} - Rp {self.price:,}'

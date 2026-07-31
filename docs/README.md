@@ -14,7 +14,8 @@ docs/
 │   ├── api-endpoints.md   # API reference
 │   ├── models.md          # Data models
 │   ├── BACKEND_AUDIT.md        # 🐛 Round 1 audit (15 bugs - all fixed)
-│   └── BACKEND_AUDIT_ROUND2.md # 🐛 Round 2 audit (9 NEW bugs found)
+│   ├── BACKEND_AUDIT_ROUND2.md # 🐛 Round 2 audit (10 NEW bugs - all fixed)
+│   └── BACKEND_AUDIT_ROUND3.md # 🐛 Round 3 audit (8 NEW bugs)
 ├── frontend/
 │   └── README.md          # Frontend overview
 ├── deployment/
@@ -30,6 +31,7 @@ docs/
 - [Data Models](backend/models.md)
 - ✅ **[Backend Audit Report - Round 1](backend/BACKEND_AUDIT.md)** — 15 bugs, all fixed
 - ✅ **[Backend Audit Report - Round 2](backend/BACKEND_AUDIT_ROUND2.md)** — 10 bugs, all fixed
+- 🐛 **[Backend Audit Report - Round 3](backend/BACKEND_AUDIT_ROUND3.md)** — 8 NEW bugs (1 high)
 - [Postman Collection](../postman/App-Martabak-API.json)
 
 ## License

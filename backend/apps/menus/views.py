@@ -21,8 +21,13 @@ class MenuViewSet(viewsets.ModelViewSet):
     - PATCH /api/v1/menus/{id}/ - Edit menu (owner only)
     - DELETE /api/v1/menus/{id}/ - Soft delete menu (owner only)
     """
-    queryset = Menu.objects.filter(is_active=True)
     permission_classes = [IsOwnerOrReadOnly]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_authenticated and user.role == 'owner':
+            return Menu.objects.all()
+        return Menu.objects.filter(is_active=True)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -36,6 +41,6 @@ class MenuViewSet(viewsets.ModelViewSet):
         """
         if not request.user.is_authenticated or request.user.role != 'owner':
             return Response({'error': 'Unauthorized'}, status=403)
-        menus = Menu.objects.all().order_by('sort_order', 'name')
+        menus = self.get_queryset().order_by('category', 'sort_order', 'name')
         serializer = MenuSerializer(menus, many=True)
         return Response(serializer.data)
