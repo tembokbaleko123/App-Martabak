@@ -126,6 +126,9 @@ backend/
 │   ├── permissions.py   # Custom permissions
 │   ├── exceptions.py    # Exception handler
 │   └── pagination.py    # Pagination
+├── media/               # Uploaded files
+│   ├── defaults/        # Default menu images
+│   └── menus/          # Uploaded menu images
 ├── .env                 # Environment variables
 └── requirements.txt    # Dependencies
 ```

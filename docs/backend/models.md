@@ -50,8 +50,17 @@ class Menu(models.Model):
     price = models.BigIntegerField()
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     emoji = models.CharField(max_length=10, default='🥞')
+    image = models.ImageField(upload_to='menus/', null=True, blank=True)
     is_active = models.BooleanField(default=True)
     sort_order = models.IntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['category', 'sort_order'],
+                name='unique_sort_order_per_category'
+            )
+        ]
 ```
 
 **Fields:**
@@ -62,8 +71,25 @@ class Menu(models.Model):
 | `price` | BigIntegerField | Price in Rupiah |
 | `category` | CharField | `manis`, `telur`, or `tipis` |
 | `emoji` | CharField | Display emoji |
+| `image` | ImageField | Menu image (optional), stored in `backend/media/menus/` |
 | `is_active` | BooleanField | Show/hide menu |
-| `sort_order` | IntegerField | Display order |
+| `sort_order` | IntegerField | Display order (unique per category) |
+
+**Constraints:**
+- `unique_sort_order_per_category`: (category, sort_order) must be unique
+
+**Serializer Fields (API Response):**
+| Field | Description |
+|-------|-------------|
+| `image_url` | Full URL to uploaded image (or null) |
+| `default_image_url` | Default image URL based on category |
+
+**Default Images:**
+| Category | Default Image |
+|----------|--------------|
+| manis | `martabak_manis.jpg` |
+| telur | `martabak_telur.jpg` |
+| tipis | `martabak_tipis.jpg` |
 
 **Default Menu Items:**
 | Name | Price | Category |
@@ -142,6 +168,14 @@ class OrderItem(models.Model):
     qty = models.IntegerField()
     price_at_order = models.BigIntegerField()
     subtotal = models.IntegerField()  # auto-calculated
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['order', 'menu'],
+                name='unique_menu_per_order'
+            )
+        ]
 ```
 
 **Fields:**
@@ -150,9 +184,12 @@ class OrderItem(models.Model):
 | `id` | AutoField | Primary key |
 | `order` | ForeignKey | FK to Order |
 | `menu` | ForeignKey | FK to Menu |
-| `qty` | IntegerField | Quantity |
+| `qty` | IntegerField | Quantity (max: 999) |
 | `price_at_order` | BigIntegerField | Snapshot of menu price at order time |
 | `subtotal` | IntegerField | qty × price_at_order (auto-calculated) |
+
+**Constraints:**
+- `unique_menu_per_order`: (order, menu) must be unique - duplicate menu items in same order are merged
 
 **Auto-calculated on save:**
 ```python
@@ -270,12 +307,12 @@ class MaterialCostItem(models.Model):
 │ pin_hash     │       │ price         │       │ kasir_id (FK)│
 │ role         │       │ category      │       │ total_amount │
 │ is_active    │       │ emoji         │       │ status       │
-│ created_at   │       │ is_active     │       │ qr_string    │
-│ updated_at   │       │ sort_order    │       │ expires_at   │
-└──────────────┘       │ created_at   │       │ paid_at      │
-       │               │ updated_at   │       │ note         │
-       │               └──────────────┘       │ goqris_data  │
-       │                                        │ created_at   │
+│ created_at   │       │ image         │       │ qr_string    │
+│ updated_at   │       │ is_active     │       │ expires_at   │
+└──────────────┘       │ sort_order    │       │ paid_at      │
+       │               │ created_at   │       │ note         │
+       │               │ updated_at   │       │ goqris_data  │
+       │               └──────────────┘       │ created_at   │
        │                                        └──────────────┘
        │                                              │
        │                                              │
@@ -315,6 +352,18 @@ class MaterialCostItem(models.Model):
                        │ price_per_unit           │
                        │ subtotal                 │
                        └──────────────────────────┘
+```
+
+## Media Files
+
+```
+backend/media/
+├── defaults/           # Default menu images
+│   ├── martabak_manis.jpg
+│   ├── martabak_telur.jpg
+│   └── martabak_tipis.jpg
+└── menus/              # Uploaded menu images
+    └── <uploaded_files>
 ```
 
 ---

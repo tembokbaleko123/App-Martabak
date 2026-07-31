@@ -101,12 +101,20 @@ List menu aktif (public).
             "price": 25000,
             "category": "manis",
             "emoji": "🥞",
+            "image": null,
+            "image_url": "http://localhost:8000/media/menus/martabak_coklat.jpg",
+            "default_image_url": "http://localhost:8000/media/defaults/martabak_manis.jpg",
             "is_active": true,
             "sort_order": 1
         }
     ]
 }
 ```
+
+**Notes:**
+- `image`: File image yang diupload (null jika tidak ada)
+- `image_url`: URL lengkap ke image yang diupload (null jika tidak ada)
+- `default_image_url`: URL default berdasarkan category
 
 ---
 
@@ -124,7 +132,7 @@ Tambah menu baru (owner only).
 
 **Headers:** `Authorization: Bearer <token>`
 
-**Request:**
+**Request (JSON):**
 ```json
 {
     "name": "Martabak Manis Special",
@@ -135,6 +143,16 @@ Tambah menu baru (owner only).
 }
 ```
 
+**Request (form-data dengan image):**
+```
+name: Martabak Manis Special
+price: 35000
+category: manis
+emoji: ⭐
+sort_order: 11
+image: <file upload>
+```
+
 **Response:**
 ```json
 {
@@ -142,6 +160,19 @@ Tambah menu baru (owner only).
     "name": "Martabak Manis Special",
     "price": 35000,
     "category": "manis",
+    "emoji": "⭐",
+    "image": "menus/martabak_special.jpg",
+    "image_url": "http://localhost:8000/media/menus/martabak_special.jpg",
+    "default_image_url": "http://localhost:8000/media/defaults/martabak_manis.jpg",
+    "is_active": true,
+    "sort_order": 11
+}
+```
+
+**Notes:**
+- `is_active` default `true` saat create
+- Jika `sort_order` tidak diset atau 0, akan auto-assign max+1 per category
+- `sort_order` harus unique per category
     "emoji": "⭐",
     "is_active": true,
     "sort_order": 11
