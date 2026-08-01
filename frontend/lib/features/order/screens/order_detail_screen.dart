@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -27,11 +29,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   OrderModel? _order;
   String? _error;
   bool _isCancelling = false;
+  Timer? _countdownTimer;
+  Duration? _timeRemaining;
+  bool _isExpired = false;
 
   @override
   void initState() {
     super.initState();
     _loadOrderDetail();
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadOrderDetail() async {
@@ -46,12 +57,47 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         _order = order;
         _isLoading = false;
       });
+      _startCountdown();
     } catch (e) {
       setState(() {
         _error = e.toString();
         _isLoading = false;
       });
     }
+  }
+
+  void _startCountdown() {
+    _countdownTimer?.cancel();
+    if (_order?.expiresAt == null) return;
+
+    _updateTimeRemaining();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _updateTimeRemaining();
+    });
+  }
+
+  void _updateTimeRemaining() {
+    if (_order?.expiresAt == null) return;
+
+    final remaining = _order!.expiresAt!.difference(DateTime.now());
+    if (remaining.isNegative && !_isExpired) {
+      setState(() {
+        _isExpired = true;
+        _timeRemaining = Duration.zero;
+      });
+      _countdownTimer?.cancel();
+      _loadOrderDetail();
+    } else if (!remaining.isNegative) {
+      setState(() {
+        _timeRemaining = remaining;
+      });
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
   }
 
   Future<void> _cancelOrder() async {
@@ -130,11 +176,73 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           _buildSummary(),
           const SizedBox(height: AppSpacing.lg),
           _buildPaymentInfo(),
+          if (_order!.isPending && _order!.qrString != null && _order!.qrString!.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.lg),
+            _buildQrSection(),
+          ],
           if (_order!.isPending) ...[
             const SizedBox(height: AppSpacing.xl),
             _buildCancelButton(),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildQrSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          children: [
+            Text('QR Code Pembayaran', style: AppTypography.titleMedium),
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              ),
+              child: QrImageView(
+                data: _order!.qrString!,
+                version: QrVersions.auto,
+                size: 200,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            if (_timeRemaining != null && !_isExpired) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.timer, color: Colors.orange, size: 20),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    'Berlaku selama: ${_formatDuration(_timeRemaining!)}',
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: Colors.orange,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ] else if (_isExpired) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error, color: AppColors.error, size: 20),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    'QR sudah kadaluarsa',
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

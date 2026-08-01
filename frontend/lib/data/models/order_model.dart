@@ -151,6 +151,8 @@ class OrderListItem extends Equatable {
   final String status;
   final String? note;
   final DateTime createdAt;
+  final String? qrString;
+  final DateTime? expiresAt;
 
   const OrderListItem({
     required this.id,
@@ -161,6 +163,8 @@ class OrderListItem extends Equatable {
     required this.status,
     this.note,
     required this.createdAt,
+    this.qrString,
+    this.expiresAt,
   });
 
   factory OrderListItem.fromJson(Map<String, dynamic> json) {
@@ -173,10 +177,16 @@ class OrderListItem extends Equatable {
       status: json['status'] as String,
       note: json['note'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
+      qrString: json['qr_string'] as String?,
+      expiresAt: json['expires_at'] != null 
+          ? DateTime.parse(json['expires_at'] as String) 
+          : null,
     );
   }
 
   DateTime get createdAtWita => DateFormatter.parseToWita(createdAt.toIso8601String());
+
+  bool get hasPendingQr => status == 'pending' && qrString != null && qrString!.isNotEmpty;
 
   @override
   List<Object?> get props => [id, refId, status];

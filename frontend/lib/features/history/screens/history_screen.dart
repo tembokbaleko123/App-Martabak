@@ -192,9 +192,45 @@ class _HistoryItemCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      order.refId,
-                      style: AppTypography.labelLarge,
+                    Row(
+                      children: [
+                        Text(
+                          order.refId,
+                          style: AppTypography.labelLarge,
+                        ),
+                        if (order.hasPendingQr) ...[
+                          const SizedBox(width: AppSpacing.sm),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.xs,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.qr_code,
+                                  size: 14,
+                                  color: Colors.orange[700],
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  'QR',
+                                  style: AppTypography.labelMedium.copyWith(
+                                    color: Colors.orange[700],
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Row(
