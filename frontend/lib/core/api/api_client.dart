@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'endpoints.dart';
 import 'exceptions.dart';
+import '../utils/connectivity_service.dart';
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
@@ -9,6 +11,8 @@ class ApiClient {
 
   late final Dio _dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  static const int _maxRetries = 3;
+  final ConnectivityService _connectivityService = ConnectivityService();
 
   ApiClient._internal() {
     _dio = Dio(BaseOptions(
@@ -29,13 +33,102 @@ class ApiClient {
         }
         return handler.next(options);
       },
+      onResponse: (response, handler) {
+        _connectivityService.setServerUnreachable(false);
+        return handler.next(response);
+      },
       onError: (error, handler) async {
-        if (error.response?.statusCode == 401) {
-          await _storage.deleteAll();
+        final path = error.requestOptions.path;
+        if (error.response?.statusCode == 401 && !path.contains('token/refresh')) {
+          final refreshed = await _tryRefreshToken(error.requestOptions);
+          if (refreshed) {
+            return handler.resolve(await _retryRequest(error.requestOptions));
+          }
+        }
+        if (_isNetworkError(error)) {
+          _connectivityService.setServerUnreachable(true);
         }
         return handler.next(error);
       },
     ));
+  }
+
+  bool _isNetworkError(DioException error) {
+    return error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout ||
+        error.type == DioExceptionType.connectionError ||
+        error.response?.statusCode == 503 ||
+        error.response?.statusCode == 502;
+  }
+
+  Future<bool> _tryRefreshToken(RequestOptions requestOptions) async {
+    try {
+      final refreshToken = await _storage.read(key: 'refresh_token');
+      if (refreshToken == null) {
+        await clearTokens();
+        return false;
+      }
+
+      final response = await Dio().post(
+        '${ApiEndpoints.baseUrl}/accounts/token/refresh/',
+        data: {'refresh': refreshToken},
+        options: Options(headers: {'Content-Type': 'application/json'}),
+      );
+
+      if (response.statusCode == 200) {
+        final newAccess = response.data['access'];
+        await _storage.write(key: 'access_token', value: newAccess);
+        requestOptions.headers['Authorization'] = 'Bearer $newAccess';
+        return true;
+      }
+    } catch (e) {
+      debugPrint('Token refresh failed: $e');
+      await clearTokens();
+    }
+    return false;
+  }
+
+  Future<Response> _retryRequest(RequestOptions requestOptions) async {
+    return await _dio.fetch(requestOptions);
+  }
+
+  bool _isRetryable(DioException error) {
+    if (error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout) {
+      return true;
+    }
+    if (error.response?.statusCode == 503 || error.response?.statusCode == 502) {
+      return true;
+    }
+    return false;
+  }
+
+  Future<Response<T>> _retryWithBackoff<T>(
+    Future<Response<T>> Function() request,
+  ) async {
+    int attempts = 0;
+    DioException? lastError;
+
+    while (attempts < _maxRetries) {
+      try {
+        return await request();
+      } on DioException catch (e) {
+        lastError = e;
+        attempts++;
+        if (attempts >= _maxRetries || !_isRetryable(e)) {
+          break;
+        }
+        final delay = Duration(seconds: attempts * 2);
+        await Future.delayed(delay);
+        if (kDebugMode) {
+          print('Retry attempt $attempts after ${delay.inSeconds}s');
+        }
+      }
+    }
+
+    throw _handleError(lastError!);
   }
 
   Future<void> setTokens(String access, String refresh) async {
@@ -56,7 +149,7 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      return await _dio.get<T>(path, queryParameters: queryParameters);
+      return await _retryWithBackoff<T>(() => _dio.get<T>(path, queryParameters: queryParameters));
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -68,7 +161,7 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      return await _dio.post<T>(path, data: data, queryParameters: queryParameters);
+      return await _retryWithBackoff<T>(() => _dio.post<T>(path, data: data, queryParameters: queryParameters));
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -80,7 +173,7 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      return await _dio.patch<T>(path, data: data, queryParameters: queryParameters);
+      return await _retryWithBackoff<T>(() => _dio.patch<T>(path, data: data, queryParameters: queryParameters));
     } on DioException catch (e) {
       throw _handleError(e);
     }
@@ -91,7 +184,7 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
   }) async {
     try {
-      return await _dio.delete<T>(path, queryParameters: queryParameters);
+      return await _retryWithBackoff<T>(() => _dio.delete<T>(path, queryParameters: queryParameters));
     } on DioException catch (e) {
       throw _handleError(e);
     }

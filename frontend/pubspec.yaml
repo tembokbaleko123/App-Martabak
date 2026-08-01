@@ -34,6 +34,9 @@ dependencies:
   flutter_animate: ^4.5.2
   badges: ^3.1.2
 
+  # Connectivity
+  connectivity_plus: ^6.0.0
+
   # Navigation
   go_router: ^14.6.2
 

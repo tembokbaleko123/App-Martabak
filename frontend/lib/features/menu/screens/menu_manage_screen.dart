@@ -160,7 +160,7 @@ class _MenuManageScreenState extends State<MenuManageScreen> with SingleTickerPr
                   Text('Pilih kategori baru untuk ${_selectedMenuIds.length} menu yang dipilih.'),
                   const SizedBox(height: AppSpacing.md),
                   DropdownButtonFormField<CategoryModel>(
-                    value: selectedCategory,
+                    initialValue: selectedCategory,
                     decoration: const InputDecoration(
                       labelText: 'Kategori',
                       border: OutlineInputBorder(),
@@ -625,7 +625,7 @@ class _MenuManageScreenState extends State<MenuManageScreen> with SingleTickerPr
                       const Text('Tidak ada kategori. Tambahkan kategori terlebih dahulu.')
                     else
                       DropdownButtonFormField<CategoryModel>(
-                        value: selectedCategory,
+                        initialValue: selectedCategory,
                         decoration: const InputDecoration(
                           labelText: 'Kategori',
                           border: OutlineInputBorder(),

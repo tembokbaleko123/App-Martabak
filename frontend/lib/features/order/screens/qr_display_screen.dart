@@ -29,27 +29,80 @@ class QrDisplayScreen extends StatefulWidget {
   State<QrDisplayScreen> createState() => _QrDisplayScreenState();
 }
 
-class _QrDisplayScreenState extends State<QrDisplayScreen> {
+class _QrDisplayScreenState extends State<QrDisplayScreen> with WidgetsBindingObserver {
   Timer? _timer;
+  Timer? _countdownTimer;
   final OrderService _orderService = OrderService();
   bool _isExpired = false;
   bool _isPaid = false;
+  bool _isInForeground = true;
+  Duration? _timeRemaining;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _startPolling();
+    _startCountdown();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
+    _countdownTimer?.cancel();
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _isInForeground = false;
+      _timer?.cancel();
+      _countdownTimer?.cancel();
+    } else if (state == AppLifecycleState.resumed) {
+      _isInForeground = true;
+      _startPolling();
+      _startCountdown();
+    }
+  }
+
+  void _startCountdown() {
+    if (widget.expiresAt == null) return;
+    _updateTimeRemaining();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _updateTimeRemaining();
+    });
+  }
+
+  void _updateTimeRemaining() {
+    if (widget.expiresAt == null) return;
+    final remaining = widget.expiresAt!.difference(DateTime.now());
+    if (remaining.isNegative) {
+      _countdownTimer?.cancel();
+      if (!_isExpired) {
+        setState(() {
+          _isExpired = true;
+          _timeRemaining = null;
+        });
+      }
+    } else {
+      setState(() {
+        _timeRemaining = remaining;
+      });
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
   void _startPolling() {
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) async {
-      if (_isPaid || _isExpired) {
+      if (_isPaid || _isExpired || !_isInForeground) {
         timer.cancel();
         return;
       }
@@ -70,7 +123,7 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
           timer.cancel();
         }
       } catch (e) {
-        // Ignore errors, keep polling
+        debugPrint('Order status check failed: $e');
       }
     });
   }
@@ -198,7 +251,42 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
                     ],
                   ),
                 )
-              else
+              else ...[
+                if (_timeRemaining != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                      vertical: AppSpacing.sm,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _timeRemaining!.inSeconds < 60
+                          ? AppColors.warning.withValues(alpha: 0.1)
+                          : AppColors.info.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.timer,
+                          color: _timeRemaining!.inSeconds < 60
+                              ? AppColors.warning
+                              : AppColors.info,
+                          size: 20,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          'Berlaku: ${_formatDuration(_timeRemaining!)}',
+                          style: AppTypography.labelLarge.copyWith(
+                            color: _timeRemaining!.inSeconds < 60
+                                ? AppColors.warning
+                                : AppColors.info,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: AppSpacing.md),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.lg,
@@ -222,6 +310,7 @@ class _QrDisplayScreenState extends State<QrDisplayScreen> {
                     ],
                   ),
                 ),
+              ],
               const SizedBox(height: AppSpacing.xl),
               Text(
                 'atau',

@@ -23,25 +23,41 @@ class QueueScreen extends StatefulWidget {
   State<QueueScreen> createState() => _QueueScreenState();
 }
 
-class _QueueScreenState extends State<QueueScreen> {
+class _QueueScreenState extends State<QueueScreen> with WidgetsBindingObserver {
   Timer? _timer;
+  bool _isInForeground = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     context.read<QueueBloc>().add(QueueLoad());
     _startAutoRefresh();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _isInForeground = false;
+      _timer?.cancel();
+    } else if (state == AppLifecycleState.resumed) {
+      _isInForeground = true;
+      _startAutoRefresh();
+      context.read<QueueBloc>().add(QueueRefresh());
+    }
+  }
+
   void _startAutoRefresh() {
+    _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
-      if (mounted) {
+      if (mounted && _isInForeground) {
         context.read<QueueBloc>().add(QueueRefresh());
       }
     });

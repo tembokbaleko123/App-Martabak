@@ -59,17 +59,35 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           subtitle: 'Order yang sudah dibayar akan muncul di sini',
                           icon: Icons.history,
                         )
-                      : RefreshIndicator(
-                          onRefresh: () async {
-                            context.read<HistoryBloc>().add(const HistoryLoad());
+                      : NotificationListener<ScrollNotification>(
+                          onNotification: (notification) {
+                            if (notification is ScrollEndNotification &&
+                                notification.metrics.extentAfter < 100 &&
+                                state.hasMore) {
+                              context.read<HistoryBloc>().add(HistoryLoadMore());
+                            }
+                            return false;
                           },
-                          child: ListView.builder(
-                            padding: const EdgeInsets.all(AppSpacing.md),
-                            itemCount: state.orders.length,
-                            itemBuilder: (context, index) {
-                              final order = state.orders[index];
-                              return _HistoryItemCard(order: order);
+                          child: RefreshIndicator(
+                            onRefresh: () async {
+                              context.read<HistoryBloc>().add(const HistoryLoad());
                             },
+                            child: ListView.builder(
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              itemCount: state.orders.length + (state.hasMore ? 1 : 0),
+                              itemBuilder: (context, index) {
+                                if (index >= state.orders.length) {
+                                  return const Padding(
+                                    padding: EdgeInsets.all(AppSpacing.md),
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
+                                }
+                                final order = state.orders[index];
+                                return _HistoryItemCard(order: order);
+                              },
+                            ),
                           ),
                         ),
                 ),

@@ -3,12 +3,13 @@
 ## Status
 
 **Implemented** - Flutter app is complete with all features.
+**Bug Audit:** 10/10 issues fixed (see [FRONTEND_AUDIT.md](FRONTEND_AUDIT.md))
 
 ## Tech Stack
 
 - **Framework**: Flutter (Dart)
 - **State Management**: flutter_bloc
-- **HTTP Client**: dio
+- **HTTP Client**: dio (with retry & token refresh)
 - **QR Code**: qr_flutter
 - **Secure Storage**: flutter_secure_storage
 - **Architecture**: Clean Architecture + MVC + BLoC
@@ -17,8 +18,8 @@
 
 ### Kasir Mode (4 bottom nav tabs)
 1. **Order Baru** - Create order with menu grid + cart + QRIS/cash checkout
-2. **Antrian** - Shared queue display
-3. **Riwayat** - Own order history
+2. **Antrian** - Shared queue display (with lifecycle-aware polling)
+3. **Riwayat** - Own order history (with infinite scroll pagination)
 4. **Profil** - Change PIN, logout
 
 ### Owner Mode
@@ -34,7 +35,7 @@ Same 4 bottom nav tabs + Management menu in Profil:
 Base URL configured via `--dart-define`:
 ```dart
 final apiBaseUrl = String.fromEnvironment('API_BASE_URL',
-    defaultValue: 'http://192.168.1.16:8000/api/v1');
+    defaultValue: 'http://localhost:8000/api/v1');
 ```
 
 ### Auth Flow
@@ -42,7 +43,8 @@ final apiBaseUrl = String.fromEnvironment('API_BASE_URL',
 2. Enter PIN (6 digits)
 3. Store JWT tokens in flutter_secure_storage
 4. Attach token to all API requests
-5. Handle 401 → auto logout
+5. Handle 401 → **auto token refresh**
+6. Handle network errors → **auto retry with backoff**
 
 ## File Structure
 

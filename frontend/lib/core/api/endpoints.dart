@@ -1,7 +1,7 @@
 class ApiEndpoints {
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://192.168.1.16:8000/api/v1',
+    defaultValue: 'http://localhost:8000/api/v1',
   );
 
   static const String health = '/health/';
@@ -11,6 +11,7 @@ class ApiEndpoints {
   static const String loginUsers = '/accounts/login-users/';
   static const String kasirs = '/accounts/kasirs/';
   static const String resetPin = '/accounts/kasirs/{id}/reset-pin/';
+  static const String tokenRefresh = '/accounts/token/refresh/';
 
   static const String categories = '/categories/';
   static const String categoriesAll = '/categories/all/';

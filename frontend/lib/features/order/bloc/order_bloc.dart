@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/models/order_model.dart';
 import '../../../data/services/category_service.dart';
@@ -157,7 +158,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
         emit(OrderPaid(order));
       }
     } catch (e) {
-      // Ignore status check errors
+      debugPrint('Order status check failed: $e');
     }
   }
 
