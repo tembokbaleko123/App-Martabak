@@ -17,8 +17,10 @@ docs/
 │   ├── BACKEND_AUDIT.md        # 🐛 Round 1 audit (15 bugs - all fixed)
 │   ├── BACKEND_AUDIT_ROUND2.md # 🐛 Round 2 audit (10 NEW bugs - all fixed)
 │   └── BACKEND_AUDIT_ROUND3.md # 🐛 Round 3 audit (8 NEW bugs)
+│   └── BACKEND_AUDIT_ROUND4.md # 🐛 Round 4 audit (7 NEW bugs)
 ├── frontend/
-│   └── README.md          # Frontend overview
+│   ├── README.md          # Frontend overview
+│   └── FRONTEND_AUDIT.md # 🐛 Frontend audit (10 NEW issues)
 ├── deployment/
 │   └── README.md          # Deployment guide
 └── postman/
