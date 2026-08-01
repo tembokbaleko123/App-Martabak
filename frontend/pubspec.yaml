@@ -1,5 +1,5 @@
-name: app_martabak
-description: "Aplikasi kasir martabak dengan GoQris QRIS payment"
+name: martabak_kasir
+description: "🥞 Martabak Kasir - Aplikasi kasir martabak dengan GoQris QRIS payment"
 publish_to: 'none'
 version: 1.0.0+1
 

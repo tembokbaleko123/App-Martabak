@@ -188,7 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           ListTile(
             leading: const Icon(Icons.info_outline),
-            title: const Text('App Martabak'),
+            title: const Text('🥞 Martabak Kasir'),
             subtitle: const Text('Versi 1.0.0'),
           ),
           const Divider(),
@@ -196,6 +196,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             leading: const Icon(Icons.restaurant),
             title: const Text('Aplikasi Kasir Martabak'),
             subtitle: const Text('Dengan pembayaran GoQris QRIS'),
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.image),
+            title: const Text('Icon'),
+            subtitle: const Text('vectorsmarket15 (Flaticon)'),
+            trailing: const Icon(Icons.open_in_new, size: 16),
+            onTap: () {
+              // Open Flaticon author page
+            },
           ),
         ],
       ),
