@@ -140,11 +140,42 @@ sudo systemctl enable martabak
 
 ## Step 5: Celery Setup
 
-### Create Celery systemd service
+### Catatan Penting
+
+Celery memerlukan **2 komponen** yang berjalan terpisah:
+1. **Worker** - Memproses task di background
+2. **Beat** - Scheduler yang menjadwalkan task periodic
+
+### Pool Type
+
+| OS | Pool Type | Command Flag |
+|----|-----------|--------------|
+| Windows | `threads` | `--pool=threads` |
+| Linux | `prefork` (default) | (tanpa flag) |
+
+> **Catatan:** `--pool=threads` diperlukan di Windows karena issue kompatibilitas billiard + Python 3.13. Di Linux bisa pakai default prefork.
+
+### Windows (Development)
+
+Jalankan di **2 terminal terpisah**:
+
+```bash
+# Terminal 1: Celery Beat (scheduler)
+cd backend
+celery -A config beat -l info
+
+# Terminal 2: Celery Worker (task processor)
+cd backend
+celery -A config.celery worker --pool=threads --loglevel=info
+```
+
+### Linux (Production)
+
+#### Create Celery Worker systemd service
 Create `/etc/systemd/system/martabak-celery.service`:
 ```ini
 [Unit]
-Description=Martabak Celery
+Description=Martabak Celery Worker
 After=network.target redis-server.target
 
 [Service]
@@ -158,12 +189,38 @@ ExecStart=/var/www/martabak/.venv/bin/celery -A config worker -l info
 WantedBy=multi-user.target
 ```
 
-### Start Celery
+#### Create Celery Beat systemd service
+Create `/etc/systemd/system/martabak-celery-beat.service`:
+```ini
+[Unit]
+Description=Martabak Celery Beat
+After=network.target redis-server.target
+
+[Service]
+User=martabak
+Group=www-data
+WorkingDirectory=/var/www/martabak
+Environment="PATH=/var/www/martabak/.venv/bin"
+ExecStart=/var/www/martabak/.venv/bin/celery -A config beat -l info --detach --pidfile=/var/run/celerybeat.pid
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### Start Celery Services
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl start martabak-celery
 sudo systemctl enable martabak-celery
+sudo systemctl start martabak-celery-beat
+sudo systemctl enable martabak-celery-beat
 ```
+
+### Task yang Berjalan
+
+| Task | Fungsi | Interval |
+|------|--------|----------|
+| `check_expired_orders` | Update status order menjadi 'expired' jika sudah lewat `expires_at` | 1 menit |
 
 ## Step 6: Nginx Configuration
 

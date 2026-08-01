@@ -50,6 +50,7 @@ class GoQrisService:
             'nama_project': project_name,
             'ref_id': ref_id,
             'amount': amount,
+            'expired': 3,  # QR berlaku 3 menit
         }
 
         logger.info(f'[GOQRIS] Creating order: apikey=REDACTED, ref_id={ref_id}, amount={amount}, project_name={project_name}')

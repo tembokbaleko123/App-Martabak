@@ -51,3 +51,9 @@ htmlcov/
 
 # Boot
 *.boot
+
+# Celery
+celerybeat-schedule
+celerybeat-schedule.*
+celerybeat-schedule-shm
+celerybeat-schedule-wal

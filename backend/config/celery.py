@@ -1,5 +1,5 @@
 """
-Celery configuration untuk App Martabak.
+Konfigurasi Celery untuk App Martabak.
 """
 import os
 from celery import Celery
@@ -10,12 +10,11 @@ app = Celery('martabak')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 app.autodiscover_tasks()
 
+# Beat schedule untuk task periodic
+# check_goqris_payment dihapus dari schedule karena butuh order_id
+# (seharusnya dipanggil saat order dibuat via apply_async)
 app.conf.beat_schedule = {
-    'check-goqris-payment-every-minute': {
-        'task': 'apps.orders.tasks.check_goqris_payment',
-        'schedule': 60.0,
-    },
-    'check-expired-orders-every-minute': {
+    'cek-order-expired-setiap-menit': {
         'task': 'apps.orders.tasks.check_expired_orders',
         'schedule': 60.0,
     },
