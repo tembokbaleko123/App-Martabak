@@ -80,6 +80,25 @@ class GoQrisService:
         except requests.HTTPError as e:
             logger.error(f'[GOQRIS] HTTP error: {e.response.status_code} - {e.response.text}')
             from core.exceptions import GoQrisException
+            
+            try:
+                data = e.response.json()
+                error_code = data.get('error_code', '')
+                
+                if error_code == 'DAILY_QUOTA_REACHED':
+                    quota_data = data.get('data', {})
+                    usage = quota_data.get('usage', 0)
+                    limit = quota_data.get('limit', 0)
+                    reset_at = quota_data.get('reset_at', 'besok')
+                    raise GoQrisException(
+                        f'Kuota harian GoQris tercapai ({usage}/{limit}). '
+                        f'Coba lagi besok atau gunakan pembayaran cash.'
+                    )
+            except GoQrisException:
+                raise
+            except Exception:
+                pass  # Fallback to generic error
+            
             raise GoQrisException(f'GoQris API error: {e.response.status_code}')
 
         except Exception as e:

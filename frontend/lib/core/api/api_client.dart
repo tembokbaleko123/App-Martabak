@@ -57,9 +57,7 @@ class ApiClient {
     return error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout ||
         error.type == DioExceptionType.sendTimeout ||
-        error.type == DioExceptionType.connectionError ||
-        error.response?.statusCode == 503 ||
-        error.response?.statusCode == 502;
+        error.type == DioExceptionType.connectionError;
   }
 
   Future<bool> _tryRefreshToken(RequestOptions requestOptions) async {

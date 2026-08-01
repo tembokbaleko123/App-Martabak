@@ -73,6 +73,21 @@ class _OrderScreenState extends State<OrderScreen> {
             );
           } else if (state is OrderPaid) {
             _showSuccessDialog(context, state);
+          } else if (state is OrderPaymentFailed) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.warning,
+                duration: const Duration(seconds: 5),
+                action: SnackBarAction(
+                  label: 'Bayar Cash',
+                  textColor: Colors.black,
+                  onPressed: () {
+                    _showCashConfirmationDialog(context);
+                  },
+                ),
+              ),
+            );
           }
         },
         builder: (context, state) {
@@ -366,6 +381,35 @@ class _OrderScreenState extends State<OrderScreen> {
                 context.read<OrderBloc>().add(OrderReset());
               },
               child: const Text('Order Baru'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showCashConfirmationDialog(BuildContext dialogContext) {
+    showDialog(
+      context: dialogContext,
+      builder: (dialogCtx) {
+        return AlertDialog(
+          title: const Text('Konfirmasi Pembayaran Cash'),
+          content: const Text(
+            'Yakin ingin mengubah metode pembayaran ke Cash?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                context.read<OrderBloc>().add(const OrderSubmit(
+                  paymentMethod: 'cash',
+                ));
+              },
+              child: const Text('Ya, Bayar Cash'),
             ),
           ],
         );

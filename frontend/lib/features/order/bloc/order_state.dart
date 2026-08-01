@@ -96,3 +96,16 @@ class OrderError extends OrderState {
   @override
   List<Object?> get props => [message];
 }
+
+class OrderPaymentFailed extends OrderState {
+  final String message;
+  final bool canRetryWithCash;
+
+  const OrderPaymentFailed({
+    required this.message,
+    this.canRetryWithCash = true,
+  });
+
+  @override
+  List<Object?> get props => [message, canRetryWithCash];
+}

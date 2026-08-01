@@ -141,7 +141,18 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
           emit(OrderPaid(order));
         }
       } catch (e) {
-        emit(OrderError(e.toString()));
+        final errorMsg = e.toString().toLowerCase();
+        
+        if (errorMsg.contains('kuota harian') ||
+            errorMsg.contains('daily_quota_reached') ||
+            errorMsg.contains('quota harian')) {
+          emit(OrderPaymentFailed(
+            message: 'Kuota harian GoQris tercapai. Gunakan pembayaran cash?',
+            canRetryWithCash: true,
+          ));
+        } else {
+          emit(OrderError(e.toString()));
+        }
         emit(currentState);
       }
     }
