@@ -70,11 +70,13 @@ Backend menggunakan **WITA (Asia/Makassar, UTC+8)** untuk semua timestamp.
 | Round 1 | 15 bugs | ✅ All Fixed |
 | Round 2 | 10 bugs | ✅ All Fixed |
 | Round 3 | 8 bugs | ✅ All Fixed |
-| **Total** | **33 bugs** | **✅ All Fixed** |
+| Round 4 | 7 bugs | ✅ All Fixed |
+| **Total** | **40 bugs** | **✅ All Fixed** |
 
 - [BACKEND_AUDIT.md](BACKEND_AUDIT.md) - Round 1 audit (15 bugs)
 - [BACKEND_AUDIT_ROUND2.md](BACKEND_AUDIT_ROUND2.md) - Round 2 audit (10 bugs)
 - [BACKEND_AUDIT_ROUND3.md](BACKEND_AUDIT_ROUND3.md) - Round 3 audit (8 bugs)
+- [BACKEND_AUDIT_ROUND4.md](BACKEND_AUDIT_ROUND4.md) - Round 4 audit (7 bugs) ✅
 
 ## Related
 

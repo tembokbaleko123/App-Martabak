@@ -58,8 +58,14 @@ def check_expired_orders():
     Dijadwalkan tiap 1 menit via Celery Beat.
     """
     from .models import Order
+    from django.db import transaction
 
-    Order.objects.filter(
-        status='pending',
-        expires_at__lt=timezone.now()
-    ).update(status='expired')
+    with transaction.atomic():
+        expired_ids = list(
+            Order.objects.filter(
+                status='pending',
+                expires_at__lt=timezone.now()
+            ).select_for_update().values_list('id', flat=True)
+        )
+        if expired_ids:
+            Order.objects.filter(id__in=expired_ids).update(status='expired')

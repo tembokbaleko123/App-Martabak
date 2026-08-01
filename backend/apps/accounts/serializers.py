@@ -42,19 +42,38 @@ class ChangePinSerializer(serializers.Serializer):
 
     def validate_old_pin(self, value):
         user = self.context['request'].user
-        if not bcrypt.checkpw(value.encode('utf-8'), user.pin_hash.encode('utf-8')):
-            raise serializers.ValidationError('PIN lama salah')
+        try:
+            if not bcrypt.checkpw(value.encode('utf-8'), user.pin_hash.encode('utf-8')):
+                raise serializers.ValidationError('PIN lama salah')
+        except (ValueError, TypeError):
+            raise serializers.ValidationError('Akun bermasalah. Hubungi owner.')
         return value
 
     def validate_new_pin(self, value):
         if len(value) < 6:
             raise serializers.ValidationError('PIN minimal 6 digit untuk keamanan.')
 
-        if all(int(value[i]) == int(value[0]) + i for i in range(len(value))):
-            raise serializers.ValidationError('PIN tidak boleh berurutan (e.g., 1234, 4321)')
-
         if len(set(value)) == 1:
             raise serializers.ValidationError('PIN tidak boleh semua digit sama (e.g., 1111)')
+
+        is_sequential_forward = all(
+            (int(value[i+1]) - int(value[i])) == 1
+            for i in range(len(value) - 1)
+        )
+        if is_sequential_forward:
+            raise serializers.ValidationError('PIN tidak boleh berurutan.')
+
+        is_sequential_reverse = all(
+            (int(value[i]) - int(value[i+1])) == 1
+            for i in range(len(value) - 1)
+        )
+        if is_sequential_reverse:
+            raise serializers.ValidationError('PIN tidak boleh berurutan.')
+
+        for i in range(len(value) - 3):
+            chunk = value[i:i+4]
+            if all(int(chunk[j+1]) - int(chunk[j]) == 1 for j in range(3)):
+                raise serializers.ValidationError('PIN tidak boleh mengandung urutan berurutan (4 digit atau lebih).')
 
         common_pins = {'0000', '1111', '1234', '4321', '9999', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '000000', '111111', '123456', '654321'}
         if value in common_pins:
@@ -91,7 +110,7 @@ class KasirSerializer(serializers.ModelSerializer):
 
 
 class KasirCreateSerializer(serializers.ModelSerializer):
-    pin = serializers.CharField(max_length=6, min_length=4, write_only=True)
+    pin = serializers.CharField(max_length=6, min_length=6, write_only=True)
 
     class Meta:
         model = Kasir

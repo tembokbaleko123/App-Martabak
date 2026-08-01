@@ -184,7 +184,7 @@ class OrderViewSet(viewsets.GenericViewSet):
         """
         queryset = Order.objects.filter(
             kasir=request.user
-        ).order_by('-created_at')
+        ).prefetch_related('items').order_by('-created_at')
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = OrderListSerializer(page, many=True)
