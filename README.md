@@ -1,4 +1,4 @@
-# App Martabak - Kasir POS dengan GoQris QRIS
+# 🥞 Martabak Kasir - Kasir POS dengan GoQris QRIS
 
 Aplikasi kasir martabak dengan Flutter (Android) dan Django (Backend). Mendukung pembayaran GoQris QRIS, manajemen menu, antrian, dan laporan penjualan.
 
@@ -7,7 +7,7 @@ Aplikasi kasir martabak dengan Flutter (Android) dan Django (Backend). Mendukung
 | Component | Status | Details |
 |-----------|--------|---------|
 | Backend | ✅ Ready | 40 bugs fixed (4 audit rounds) |
-| Frontend | ✅ Ready | 10 issues fixed |
+| Frontend | ✅ Ready | 13 issues fixed |
 | Code Quality | ✅ Ready | All linting passed |
 | Documentation | ✅ Complete | Full audit trails |
 
@@ -22,8 +22,10 @@ Aplikasi kasir martabak dengan Flutter (Android) dan Django (Backend). Mendukung
 - **Order Processing**: Pembuatan order, kalkulasi total, komisi kasir
 - **Queue System**: Display antrian real-time
 - **GoQris Payment**: QRIS payment dengan auto-confirmation via Celery
+- **GoQris Quota Handling**: Graceful fallback ke cash saat quota exceeded
+- **QR Display**: QR code dengan countdown timer di order detail
 - **Reports**: Laporan harian, top menu, performa kasir, profit
-- **Connectivity Monitoring**: Banner saat server unreachable
+- **Connectivity Monitoring**: Banner saat server unreachable dengan health check
 
 ---
 
@@ -58,7 +60,7 @@ App-Martabak/
 │   ├── core/                   # Middleware, permissions
 │   └── requirements.txt
 │
-├── frontend/                   # Flutter Mobile App
+├── frontend/                   # Flutter Mobile App (🥞 Martabak Kasir)
 │   └── lib/
 │       ├── core/               # API client, theme, utils
 │       ├── features/           # Feature modules (MVC)
@@ -86,12 +88,14 @@ App-Martabak/
 ### Completed
 
 - [x] Backend implementation (Django + DRF)
-- [x] Frontend implementation (Flutter)
+- [x] Frontend implementation (Flutter - 🥞 Martabak Kasir)
 - [x] GoQris QRIS payment integration
 - [x] Celery background tasks (payment confirmation)
-- [x] All bug fixes (40 backend + 10 frontend)
+- [x] All bug fixes (40 backend + 13 frontend)
 - [x] Flutter analyze: 0 issues
 - [x] Documentation complete
+- [x] QR display in order detail with countdown
+- [x] GoQris quota handling with cash fallback
 
 ### Pending (Post-VPS)
 
@@ -196,7 +200,8 @@ All bugs have been fixed and documented:
 | Backend Round 3 | 8 bugs | 8 | ✅ Done |
 | Backend Round 4 | 7 bugs | 7 | ✅ Done |
 | Frontend Round 1 | 10 issues | 10 | ✅ Done |
-| **Total** | **50 issues** | **50** | **✅ Done** |
+| Frontend Session Aug 2026 | 3 new fixes | 3 | ✅ Done |
+| **Total** | **53 issues** | **53** | **✅ Done** |
 
 See [docs/README.md](docs/README.md) for detailed audit reports.
 
