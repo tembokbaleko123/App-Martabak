@@ -10,6 +10,7 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
 
   ConnectivityBloc() : super(const ConnectivityState()) {
     on<ConnectivityCheck>(_onCheck);
+    on<CheckServerReachability>(_onCheckServerReachability);
     on<ConnectivityStatusChanged>(_onStatusChanged);
     _init();
   }
@@ -28,6 +29,14 @@ class ConnectivityBloc extends Bloc<ConnectivityEvent, ConnectivityState> {
     Emitter<ConnectivityState> emit,
   ) async {
     await _connectivityService.checkConnectivity();
+  }
+
+  Future<void> _onCheckServerReachability(
+    CheckServerReachability event,
+    Emitter<ConnectivityState> emit,
+  ) async {
+    final isReachable = await _connectivityService.checkServerReachability();
+    _connectivityService.setServerUnreachable(!isReachable);
   }
 
   void _onStatusChanged(

@@ -65,7 +65,7 @@ class ConnectivityBanner extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () {
-                      context.read<ConnectivityBloc>().add(ConnectivityCheck());
+                      context.read<ConnectivityBloc>().add(CheckServerReachability());
                     },
                     style: TextButton.styleFrom(
                       foregroundColor: textColor,

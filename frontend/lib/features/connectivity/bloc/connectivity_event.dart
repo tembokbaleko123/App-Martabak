@@ -9,6 +9,8 @@ abstract class ConnectivityEvent extends Equatable {
 
 class ConnectivityCheck extends ConnectivityEvent {}
 
+class CheckServerReachability extends ConnectivityEvent {}
+
 class ConnectivityStatusChanged extends ConnectivityEvent {
   final bool isConnected;
   final bool isServerReachable;

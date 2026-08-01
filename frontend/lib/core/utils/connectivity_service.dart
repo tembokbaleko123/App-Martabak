@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 enum ConnectivityStatus {
@@ -45,6 +46,22 @@ class ConnectivityService {
     } catch (e) {
       debugPrint('Connectivity check failed: $e');
       _updateStatus(ConnectivityStatus.disconnected);
+    }
+  }
+
+  Future<bool> checkServerReachability() async {
+    try {
+      final response = await Dio().get(
+        'http://192.168.1.16:8000/api/v1/health/',
+        options: Options(
+          sendTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+        ),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Server reachability check failed: $e');
+      return false;
     }
   }
 
