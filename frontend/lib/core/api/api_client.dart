@@ -97,9 +97,6 @@ class ApiClient {
         error.type == DioExceptionType.sendTimeout) {
       return true;
     }
-    if (error.response?.statusCode == 503 || error.response?.statusCode == 502) {
-      return true;
-    }
     return false;
   }
 
