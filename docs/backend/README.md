@@ -17,6 +17,7 @@ Django 5.x + Django REST Framework backend untuk aplikasi kasir martabak.
 ```
 apps/
 ├── accounts/          # User authentication & management
+├── categories/        # Category CRUD (flexible, owner managed)
 ├── menus/             # Menu CRUD
 ├── orders/            # Order processing & GoQris integration
 ├── goqris/            # GoQris payment service
@@ -49,6 +50,18 @@ python manage.py runserver
 ## Configuration
 
 Environment variables are in `.env` file. See [setup.md](setup.md) for details.
+
+## Timezone
+
+Backend menggunakan **WITA (Asia/Makassar, UTC+8)** untuk semua timestamp.
+
+## Throttling
+
+| Endpoint | Rate | Scope |
+|----------|------|-------|
+| `/orders/queue/` | 6/minute | Per user |
+| Login | 20/minute | Per IP |
+| API Default | 500/minute | Per IP |
 
 ## Bug Audit Status
 

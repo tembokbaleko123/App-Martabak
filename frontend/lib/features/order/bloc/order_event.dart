@@ -61,3 +61,21 @@ class OrderCheckStatus extends OrderEvent {
 }
 
 class OrderReset extends OrderEvent {}
+
+class OrderSelectCategory extends OrderEvent {
+  final int? categoryId;
+
+  const OrderSelectCategory(this.categoryId);
+
+  @override
+  List<Object?> get props => [categoryId];
+}
+
+class OrderSearch extends OrderEvent {
+  final String query;
+
+  const OrderSearch(this.query);
+
+  @override
+  List<Object?> get props => [query];
+}

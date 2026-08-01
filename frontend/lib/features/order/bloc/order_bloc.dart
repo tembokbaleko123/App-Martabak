@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/models/order_model.dart';
+import '../../../data/services/category_service.dart';
 import '../../../data/services/menu_service.dart';
 import '../../../data/services/order_service.dart';
 import 'order_event.dart';
@@ -7,6 +8,7 @@ import 'order_state.dart';
 
 class OrderBloc extends Bloc<OrderEvent, OrderState> {
   final MenuService _menuService = MenuService();
+  final CategoryService _categoryService = CategoryService();
   final OrderService _orderService = OrderService();
 
   OrderBloc() : super(OrderInitial()) {
@@ -18,6 +20,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     on<OrderSubmit>(_onSubmit);
     on<OrderCheckStatus>(_onCheckStatus);
     on<OrderReset>(_onReset);
+    on<OrderSelectCategory>(_onSelectCategory);
+    on<OrderSearch>(_onSearch);
   }
 
   Future<void> _onLoadMenus(
@@ -27,9 +31,11 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     emit(OrderLoading());
     try {
       final menus = await _menuService.getMenus();
+      final categories = await _categoryService.getCategories();
       emit(OrderMenuLoaded(
         menus: menus,
-        selectedCategory: 'manis',
+        categories: categories,
+        selectedCategoryId: null,
       ));
     } catch (e) {
       emit(OrderError(e.toString()));
@@ -46,7 +52,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       final existingIndex = cart.indexWhere((item) => item.menu.id == event.menu.id);
 
       if (existingIndex >= 0) {
-        cart[existingIndex].qty += event.qty;
+        final existing = cart[existingIndex];
+        cart[existingIndex] = existing.copyWith(qty: existing.qty + event.qty);
       } else {
         cart.add(CartItem(menu: event.menu, qty: event.qty));
       }
@@ -72,15 +79,17 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   ) {
     final currentState = state;
     if (currentState is OrderMenuLoaded) {
-      final cart = List<CartItem>.from(currentState.cart);
+      List<CartItem> cart;
 
       if (event.qty <= 0) {
-        cart.removeWhere((item) => item.menu.id == event.menuId);
+        cart = currentState.cart.where((item) => item.menu.id != event.menuId).toList();
       } else {
-        final index = cart.indexWhere((item) => item.menu.id == event.menuId);
-        if (index >= 0) {
-          cart[index].qty = event.qty;
-        }
+        cart = currentState.cart.map((item) {
+          if (item.menu.id == event.menuId) {
+            return item.copyWith(qty: event.qty);
+          }
+          return item;
+        }).toList();
       }
 
       emit(currentState.copyWith(cart: cart));
@@ -157,5 +166,29 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     Emitter<OrderState> emit,
   ) {
     add(OrderLoadMenus());
+  }
+
+  void _onSelectCategory(
+    OrderSelectCategory event,
+    Emitter<OrderState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is OrderMenuLoaded) {
+      if (event.categoryId == null) {
+        emit(currentState.copyWith(clearSelectedCategoryId: true));
+      } else {
+        emit(currentState.copyWith(selectedCategoryId: event.categoryId));
+      }
+    }
+  }
+
+  void _onSearch(
+    OrderSearch event,
+    Emitter<OrderState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is OrderMenuLoaded) {
+      emit(currentState.copyWith(searchQuery: event.query));
+    }
   }
 }

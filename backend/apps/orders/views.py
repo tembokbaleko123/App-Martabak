@@ -18,6 +18,7 @@ from .serializers import (
 )
 from apps.goqris.services import goqris_service
 from core.permissions import IsOwnerOrKasir
+from core.throttles import QueueRateThrottle
 
 logger = logging.getLogger(__name__)
 
@@ -160,14 +161,15 @@ class OrderViewSet(viewsets.GenericViewSet):
         order.save(update_fields=['status', 'updated_at'])
         return Response({'message': 'Order berhasil dibatalkan'})
 
-    @action(detail=False, methods=['get'], url_path='queue')
+    @action(detail=False, methods=['get'], url_path='queue', throttle_classes=[QueueRateThrottle])
     def queue(self, request):
         """
         Antrian shared - semua order pending dan paid (untuk display kasir).
         Hanya menampilkan order hari ini dan kemarin.
+        Throttle: 6 per menit per user (1 request setiap 10 detik).
         """
-        from datetime import date, timedelta
-        today = date.today()
+        from datetime import timedelta
+        today = timezone.now().date()
         queryset = Order.objects.filter(
             status__in=['pending', 'paid'],
             created_at__date__gte=today - timedelta(days=1)

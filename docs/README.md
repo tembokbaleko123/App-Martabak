@@ -57,3 +57,10 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 | Payment | GoQris QRIS | ✅ Complete |
 | Frontend | Flutter (Android) | 🚧 In Progress |
 | Backend Bugs | 33 bugs fixed | ✅ Complete |
+
+## Configuration
+
+| Setting | Value | Description |
+|---------|-------|-------------|
+| Timezone | WITA (Asia/Makassar) | Backend & frontend display |
+| Queue Throttle | 6 req/min | Rate limit untuk queue endpoint |

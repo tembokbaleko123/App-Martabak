@@ -20,6 +20,7 @@ backend/
 │   └── urls.py             # URL routing
 ├── apps/
 │   ├── accounts/          # User authentication (PIN + JWT)
+│   ├── categories/         # Category management (flexible, owner CRUD)
 │   ├── menus/             # Menu management
 │   ├── orders/            # Order processing
 │   ├── goqris/            # GoQris payment integration
@@ -120,6 +121,19 @@ cd backend
    ```bash
    GET /api/v1/goqris/profile/
    ```
+
+## Timezone Configuration
+
+- **Backend:** `TIME_ZONE = 'Asia/Makassar'` (WITA, UTC+8)
+- **Celery:** `CELERY_TIMEZONE = 'Asia/Makassar'`
+- **Frontend:** Konversi ke WITA saat display datetime
+
+## Throttling
+
+| Endpoint | Rate | Scope |
+|----------|------|-------|
+| `/orders/queue/` | 6/minute | Per user |
+| Login | 20/minute | Per IP |
 
 ## Coding Conventions
 

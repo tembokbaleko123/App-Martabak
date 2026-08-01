@@ -15,32 +15,50 @@ class OrderLoading extends OrderState {}
 
 class OrderMenuLoaded extends OrderState {
   final List<MenuModel> menus;
+  final List<CategoryModel> categories;
   final List<CartItem> cart;
-  final String? selectedCategory;
+  final int? selectedCategoryId;
+  final String searchQuery;
 
   const OrderMenuLoaded({
     required this.menus,
+    required this.categories,
     this.cart = const [],
-    this.selectedCategory,
+    this.selectedCategoryId,
+    this.searchQuery = '',
   });
 
   int get totalAmount => cart.fold(0, (sum, item) => sum + item.subtotal);
   int get itemCount => cart.fold(0, (sum, item) => sum + item.qty);
 
+  List<MenuModel> get filteredMenus {
+    return menus.where((m) {
+      final matchesCategory = selectedCategoryId == null || m.categoryId == selectedCategoryId;
+      final matchesSearch = searchQuery.isEmpty ||
+          m.name.toLowerCase().contains(searchQuery.toLowerCase());
+      return matchesCategory && m.isActive && matchesSearch;
+    }).toList();
+  }
+
   OrderMenuLoaded copyWith({
     List<MenuModel>? menus,
+    List<CategoryModel>? categories,
     List<CartItem>? cart,
-    String? selectedCategory,
+    int? selectedCategoryId,
+    bool clearSelectedCategoryId = false,
+    String? searchQuery,
   }) {
     return OrderMenuLoaded(
       menus: menus ?? this.menus,
+      categories: categories ?? this.categories,
       cart: cart ?? this.cart,
-      selectedCategory: selectedCategory ?? this.selectedCategory,
+      selectedCategoryId: clearSelectedCategoryId ? null : (selectedCategoryId ?? this.selectedCategoryId),
+      searchQuery: searchQuery ?? this.searchQuery,
     );
   }
 
   @override
-  List<Object?> get props => [menus, cart, selectedCategory];
+  List<Object?> get props => [menus, categories, cart, selectedCategoryId, searchQuery];
 }
 
 class OrderSubmitting extends OrderState {

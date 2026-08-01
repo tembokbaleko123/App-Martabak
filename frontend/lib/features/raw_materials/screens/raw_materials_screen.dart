@@ -114,8 +114,8 @@ class _CostEntryCard extends StatelessWidget {
   });
 
   String _formatDateRange(String from, String to) {
-    final fromDate = DateTime.parse(from);
-    final toDate = DateTime.parse(to);
+    final fromDate = DateTime.parse('${from}T00:00:00Z');
+    final toDate = DateTime.parse('${to}T00:00:00Z');
     final months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
       'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'

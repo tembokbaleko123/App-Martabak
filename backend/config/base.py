@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django_filters',
     # Apps
     'apps.accounts',
+    'apps.categories',
     'apps.menus',
     'apps.orders',
     'apps.goqris',
@@ -85,7 +86,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = 'id-id'
-TIME_ZONE = 'Asia/Jakarta'
+TIME_ZONE = 'Asia/Makassar'
 USE_I18N = True
 USE_TZ = True
 
@@ -122,6 +123,8 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'login': '20/minute',
         'api': '500/minute',
+        'queue': '6/minute',
+        'goqris': '30/minute',
     },
     'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
 }
@@ -167,4 +170,4 @@ CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:63
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'Asia/Jakarta'
+CELERY_TIMEZONE = 'Asia/Makassar'

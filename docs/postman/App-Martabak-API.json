@@ -203,19 +203,119 @@
 			]
 		},
 		{
-			"name": "Menus",
+			"name": "Categories (Owner Only)",
 			"item": [
 				{
-					"name": "List Menu (Public)",
+					"name": "List Categories (Public)",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/menus/",
+							"raw": "{{baseUrl}}/categories/",
 							"host": ["{{baseUrl}}"],
-							"path": ["menus/"]
+							"path": ["categories/"]
 						},
-						"description": "List menu aktif (tanpa auth)"
+						"description": "List category aktif (public)"
+					},
+					"response": []
+				},
+				{
+					"name": "List All Categories (Owner Only)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/categories/all/",
+							"host": ["{{baseUrl}}"],
+							"path": ["categories", "all/"]
+						},
+						"description": "List semua category termasuk nonaktif (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Category (Owner Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Martabak Sayur\",\n    \"sort_order\": 4\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/categories/",
+							"host": ["{{baseUrl}}"],
+							"path": ["categories/"]
+						},
+						"description": "Tambah category baru (owner only). Nama akan di-convert ke lowercase."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Category (Owner Only)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Sayur Segar\",\n    \"sort_order\": 4\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/categories/4/",
+							"host": ["{{baseUrl}}"],
+							"path": ["categories", "4/"]
+						},
+						"description": "Edit category (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Category (Owner Only - Soft Delete + Deactivate Menus)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/categories/4/",
+							"host": ["{{baseUrl}}"],
+							"path": ["categories", "4/"]
+						},
+						"description": "Soft delete category + deactivate semua menu di dalamnya (owner only)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Menus",
+			"item": [
+				{
+					"name": "List Menu (Public with Search)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/menus/?search=manis",
+							"host": ["{{baseUrl}}"],
+							"path": ["menus/"],
+							"query": [
+								{
+									"key": "search",
+									"value": "manis",
+									"description": "Filter menu by nama (case-insensitive)"
+								}
+							]
+						},
+						"description": "List menu aktif (tanpa auth). Supports ?search= query param."
 					},
 					"response": []
 				},
@@ -245,14 +345,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Martabak Manis Special\",\n    \"price\": 35000,\n    \"category\": \"manis\",\n    \"emoji\": \"⭐\",\n    \"sort_order\": 11\n}"
+							"raw": "{\n    \"name\": \"Martabak Manis Special\",\n    \"price\": 35000,\n    \"category_id\": 1,\n    \"emoji\": \"⭐\",\n    \"sort_order\": 11\n}"
 						},
 						"url": {
 							"raw": "{{baseUrl}}/menus/",
 							"host": ["{{baseUrl}}"],
 							"path": ["menus/"]
 						},
-						"description": "Tambah menu baru (owner only)"
+						"description": "Tambah menu baru (owner only). category_id is required."
 					},
 					"response": []
 				},
@@ -290,6 +390,29 @@
 							"path": ["menus", "11/"]
 						},
 						"description": "Soft delete menu (owner only)"
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Update Menus (Owner Only)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"menu_ids\": [6, 7, 8],\n    \"category_id\": 1,\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/menus/bulk/",
+							"host": ["{{baseUrl}}"],
+							"path": ["menus", "bulk/"]
+						},
+						"description": "Bulk update menus: reassign category dan/atau aktivasi/deaktivasi. Use case: reactivating menus after category delete."
 					},
 					"response": []
 				}

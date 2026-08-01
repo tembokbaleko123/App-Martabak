@@ -6,6 +6,7 @@ import '../features/auth/bloc/auth_bloc.dart';
 import '../features/auth/bloc/auth_state.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/order/screens/order_screen.dart';
+import '../features/order/screens/order_detail_screen.dart';
 import '../features/order/screens/qr_display_screen.dart';
 import '../features/queue/screens/queue_screen.dart';
 import '../features/history/screens/history_screen.dart';
@@ -106,6 +107,13 @@ class AppRouter {
               expiresAt: extra?['expires_at'] as DateTime?,
               totalAmount: extra?['total_amount'] as int,
             );
+          },
+        ),
+        GoRoute(
+          path: RouteNames.orderDetail,
+          builder: (context, state) {
+            final id = int.parse(state.uri.queryParameters['id']!);
+            return OrderDetailScreen(orderId: id);
           },
         ),
         GoRoute(

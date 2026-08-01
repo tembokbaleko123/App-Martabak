@@ -100,6 +100,13 @@ class AppTheme {
         color: AppColors.surfaceVariant,
         thickness: 1,
       ),
+      tabBarTheme: const TabBarThemeData(
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white70,
+        indicatorColor: Colors.white,
+        labelStyle: TextStyle(fontWeight: FontWeight.w600),
+        unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w400),
+      ),
     );
   }
 }

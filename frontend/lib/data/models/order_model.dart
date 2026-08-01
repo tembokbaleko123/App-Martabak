@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'menu_model.dart';
+import '../../core/utils/date_formatter.dart';
 
 class OrderModel extends Equatable {
   final int id;
@@ -42,6 +43,10 @@ class OrderModel extends Equatable {
   bool get isCancelled => status == 'cancelled';
   bool get isGoqris => paymentMethod == 'goqris';
   bool get isCash => paymentMethod == 'cash';
+
+  DateTime get createdAtWita => DateFormatter.parseToWita(createdAt.toIso8601String());
+  DateTime? get paidAtWita => paidAt != null ? DateFormatter.parseToWita(paidAt!.toIso8601String()) : null;
+  DateTime? get expiresAtWita => expiresAt != null ? DateFormatter.parseToWita(expiresAt!.toIso8601String()) : null;
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
@@ -121,15 +126,20 @@ class OrderItemModel extends Equatable {
   List<Object?> get props => [id, menuId, qty, subtotal];
 }
 
-class CartItem {
+class CartItem extends Equatable {
   final MenuModel menu;
-  int qty;
+  final int qty;
 
-  CartItem({required this.menu, this.qty = 1});
+  const CartItem({required this.menu, this.qty = 1});
 
   int get subtotal => menu.price * qty;
 
+  CartItem copyWith({int? qty}) => CartItem(menu: menu, qty: qty ?? this.qty);
+
   OrderItemModel toOrderItem() => OrderItemModel.fromMenu(menu, qty);
+
+  @override
+  List<Object?> get props => [menu, qty];
 }
 
 class OrderListItem extends Equatable {
@@ -165,6 +175,8 @@ class OrderListItem extends Equatable {
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
+
+  DateTime get createdAtWita => DateFormatter.parseToWita(createdAt.toIso8601String());
 
   @override
   List<Object?> get props => [id, refId, status];

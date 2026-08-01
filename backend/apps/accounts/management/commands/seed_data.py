@@ -4,12 +4,13 @@ Management command untuk seed data awal.
 import bcrypt
 from django.core.management.base import BaseCommand
 from apps.accounts.models import Kasir
+from apps.categories.models import Category
 from apps.menus.models import Menu
 from apps.settings_app.models import Settings
 
 
 class Command(BaseCommand):
-    help = 'Seed data awal: owner, kasir, dan menu'
+    help = 'Seed data awal: owner, kasir, category, menu, dan settings'
 
     def handle(self, *args, **options):
         self.stdout.write('Memulai seed data...')
@@ -51,29 +52,52 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(f'Kasir already exists: {kasir.username}')
 
+        # Seed Categories (lowercase)
+        category_data = [
+            {'name': 'manis', 'sort_order': 1},
+            {'name': 'telur', 'sort_order': 2},
+            {'name': 'tipis', 'sort_order': 3},
+        ]
+
+        categories = {}
+        for data in category_data:
+            category, created = Category.objects.get_or_create(
+                name=data['name'],
+                defaults={
+                    'sort_order': data['sort_order'],
+                    'is_active': True,
+                }
+            )
+            categories[data['name']] = category
+            if created:
+                self.stdout.write(self.style.SUCCESS(f'Category created: {category.name}'))
+            else:
+                self.stdout.write(f'Category already exists: {category.name}')
+
         # Seed Menu
         menu_data = [
-            # Manis (5)
+            # Manis
             {'name': 'Martabak Manis Coklat', 'price': 25000, 'category': 'manis', 'emoji': '🥞', 'sort_order': 1},
             {'name': 'Martabak Manis Coklat Keju', 'price': 30000, 'category': 'manis', 'emoji': '🥞', 'sort_order': 2},
             {'name': 'Martabak Manis Keju', 'price': 28000, 'category': 'manis', 'emoji': '🥞', 'sort_order': 3},
             {'name': 'Martabak Manis Susu', 'price': 22000, 'category': 'manis', 'emoji': '🥞', 'sort_order': 4},
             {'name': 'Martabak Manis Kacang', 'price': 20000, 'category': 'manis', 'emoji': '🥞', 'sort_order': 5},
-            # Telur (3)
+            # Telur
             {'name': 'Martabak Telur Biasa', 'price': 20000, 'category': 'telur', 'emoji': '🥚', 'sort_order': 6},
             {'name': 'Martabak Telur Spesial', 'price': 25000, 'category': 'telur', 'emoji': '🥚', 'sort_order': 7},
             {'name': 'Martabak Telur Keju', 'price': 30000, 'category': 'telur', 'emoji': '🥚', 'sort_order': 8},
-            # Tipis (2)
+            # Tipis
             {'name': 'Martabak Tipis Biasa', 'price': 15000, 'category': 'tipis', 'emoji': '🥙', 'sort_order': 9},
             {'name': 'Martabak Tipis Spesial', 'price': 20000, 'category': 'tipis', 'emoji': '🥙', 'sort_order': 10},
         ]
 
         for data in menu_data:
+            category = categories.get(data['category'])
             menu, created = Menu.objects.get_or_create(
                 name=data['name'],
                 defaults={
                     'price': data['price'],
-                    'category': data['category'],
+                    'category': category,
                     'emoji': data['emoji'],
                     'sort_order': data['sort_order'],
                     'is_active': True,

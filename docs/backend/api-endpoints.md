@@ -99,10 +99,131 @@ Health check endpoint (public, no auth).
 
 ---
 
+## Categories
+
+### GET `/categories/`
+List category aktif (public).
+
+**Response:**
+```json
+{
+    "status": true,
+    "data": [
+        {
+            "id": 1,
+            "name": "manis",
+            "sort_order": 1,
+            "is_active": true
+        },
+        {
+            "id": 2,
+            "name": "telur",
+            "sort_order": 2,
+            "is_active": true
+        }
+    ]
+}
+```
+
+---
+
+### GET `/categories/all/`
+List semua category (aktif + nonaktif) - owner only.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:** Same as `/categories/` but includes inactive items.
+
+---
+
+### POST `/categories/`
+Tambah category baru (owner only).
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request:**
+```json
+{
+    "name": "Martabak Sayur",
+    "sort_order": 4
+}
+```
+
+**Response:**
+```json
+{
+    "status": true,
+    "message": "Category berhasil dibuat",
+    "data": {
+        "id": 4,
+        "name": "martabak sayur",
+        "sort_order": 4,
+        "is_active": true
+    }
+}
+```
+
+**Notes:**
+- `name` akan di-convert ke lowercase secara otomatis
+- Jika `sort_order` tidak diset, akan auto-assign max+1
+- `sort_order` harus unique globally
+
+---
+
+### PATCH `/categories/{id}/`
+Edit category (owner only).
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request:**
+```json
+{
+    "name": "Sayur Segar",
+    "sort_order": 4
+}
+```
+
+**Response:**
+```json
+{
+    "status": true,
+    "message": "Category berhasil diupdate",
+    "data": {
+        "id": 4,
+        "name": "sayur segar",
+        "sort_order": 4,
+        "is_active": true
+    }
+}
+```
+
+---
+
+### DELETE `/categories/{id}/`
+Soft delete category + deactivate semua menu di dalamnya (owner only).
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+    "status": true,
+    "message": "Category berhasil dihapus. Semua menu dalam category ini juga di-nonaktifkan."
+}
+```
+
+**Notes:**
+- Category di-set `is_active=False`
+- Semua menu dalam category di-set `is_active=False`
+
+---
+
 ## Menus
 
 ### GET `/menus/`
-List menu aktif (public).
+List menu aktif dengan search (public).
+
+**Query params:** `?search=nama_menu` (optional, case-insensitive)
 
 **Response:**
 ```json
@@ -114,11 +235,14 @@ List menu aktif (public).
             "id": 1,
             "name": "Martabak Manis Coklat",
             "price": 25000,
-            "category": "manis",
+            "category": {
+                "id": 1,
+                "name": "manis"
+            },
             "emoji": "🥞",
             "image": null,
-            "image_url": "http://localhost:8000/media/menus/martabak_coklat.jpg",
-            "default_image_url": "http://localhost:8000/media/defaults/martabak_manis.jpg",
+            "image_url": null,
+            "default_image_url": "http://localhost:8000/media/defaults/martabak.jpg",
             "is_active": true,
             "sort_order": 1
         }
@@ -127,9 +251,12 @@ List menu aktif (public).
 ```
 
 **Notes:**
+- `category`: Nested object `{id, name}`
 - `image`: File image yang diupload (null jika tidak ada)
 - `image_url`: URL lengkap ke image yang diupload (null jika tidak ada)
-- `default_image_url`: URL default berdasarkan category
+- `default_image_url`: Default image URL (`defaults/martabak.jpg`)
+- Hanya menampilkan menu dengan category yang aktif
+- Search filter: case-insensitive partial match pada nama menu
 
 ---
 
@@ -152,7 +279,7 @@ Tambah menu baru (owner only).
 {
     "name": "Martabak Manis Special",
     "price": 35000,
-    "category": "manis",
+    "category_id": 1,
     "emoji": "⭐",
     "sort_order": 11
 }
@@ -162,7 +289,7 @@ Tambah menu baru (owner only).
 ```
 name: Martabak Manis Special
 price: 35000
-category: manis
+category_id: 1
 emoji: ⭐
 sort_order: 11
 image: <file upload>
@@ -171,28 +298,30 @@ image: <file upload>
 **Response:**
 ```json
 {
-    "id": 11,
-    "name": "Martabak Manis Special",
-    "price": 35000,
-    "category": "manis",
-    "emoji": "⭐",
-    "image": "menus/martabak_special.jpg",
-    "image_url": "http://localhost:8000/media/menus/martabak_special.jpg",
-    "default_image_url": "http://localhost:8000/media/defaults/martabak_manis.jpg",
-    "is_active": true,
-    "sort_order": 11
+    "status": true,
+    "message": "Menu berhasil dibuat",
+    "data": {
+        "id": 11,
+        "name": "Martabak Manis Special",
+        "price": 35000,
+        "category": {
+            "id": 1,
+            "name": "manis"
+        },
+        "emoji": "⭐",
+        "image": null,
+        "image_url": null,
+        "default_image_url": "http://localhost:8000/media/defaults/martabak.jpg",
+        "is_active": true,
+        "sort_order": 11
+    }
 }
 ```
 
 **Notes:**
+- `category_id`: WAJIB, ID dari category yang sudah ada
 - `is_active` default `true` saat create
 - Jika `sort_order` tidak diset atau 0, akan auto-assign max+1 per category
-- `sort_order` harus unique per category
-    "emoji": "⭐",
-    "is_active": true,
-    "sort_order": 11
-}
-```
 
 ---
 
@@ -216,6 +345,65 @@ Soft delete menu (owner only).
 **Headers:** `Authorization: Bearer <token>`
 
 Sets `is_active=false`.
+
+---
+
+### PATCH `/menus/bulk/`
+Bulk update menus (owner only). Bisa reassign ke category lain dan/atau aktivasi/deaktivasi.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request:**
+```json
+{
+    "menu_ids": [6, 7, 8],
+    "category_id": 1,
+    "is_active": true
+}
+```
+
+**Request Fields:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `menu_ids` | Array of int | Yes | List menu ID yang mau diupdate |
+| `category_id` | int | No | Category baru untuk reassign |
+| `is_active` | boolean | No | Aktifkan/nonaktifkan menu |
+
+**Use Cases:**
+
+1. **Reassign menus ke category lain:**
+   ```json
+   {"menu_ids": [1, 2], "category_id": 3}
+   ```
+
+2. **Reactivate menu + reassign:**
+   ```json
+   {"menu_ids": [6, 7, 8], "category_id": 1, "is_active": true}
+   ```
+
+3. **Hanya reactivate tanpa reassign:**
+   ```json
+   {"menu_ids": [1, 2], "is_active": true}
+   ```
+
+**Response:**
+```json
+{
+    "status": true,
+    "message": "3 menu berhasil diupdate (dipindahkan ke category manis, diaktivasi)",
+    "updated_count": 3,
+    "updated_menus": [
+        {"id": 6, "name": "Martabak Telur Spesial", "category_id": 1, "category_name": "manis", "is_active": true},
+        {"id": 7, "name": "Martabak Telur Keju", "category_id": 1, "category_name": "manis", "is_active": true},
+        {"id": 8, "name": "Martabak Telur Biasa", "category_id": 1, "category_name": "manis", "is_active": true}
+    ]
+}
+```
+
+**Notes:**
+- Minimal 1 menu ID harus diberikan
+- Category harus aktif jika digunakan
+- Menu IDs yang tidak ditemukan akan diabaikan
 
 ---
 
@@ -366,6 +554,8 @@ Cek status pembayaran order.
 Antrian shared untuk display kasir (pending + paid orders).
 
 **Headers:** `Authorization: Bearer <token>`
+
+**Throttle:** 6 requests/minute per user (1 request setiap 10 detik)
 
 **Response:** List of recent pending/paid orders.
 

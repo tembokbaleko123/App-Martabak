@@ -101,6 +101,17 @@ redis-server
 .venv\Scripts\celery -A config worker -l info
 ```
 
+## Timezone Configuration
+
+Backend menggunakan **WITA (Asia/Makassar, UTC+8)** untuk semua timestamp.
+
+| Setting | Value | Description |
+|---------|-------|-------------|
+| `TIME_ZONE` | `Asia/Makassar` | Django timezone |
+| `CELERY_TIMEZONE` | `Asia/Makassar` | Celery task scheduling |
+
+Semua datetime di database dan API response menggunakan WITA.
+
 ## Project Structure
 
 ```

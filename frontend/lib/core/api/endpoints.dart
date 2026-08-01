@@ -12,8 +12,11 @@ class ApiEndpoints {
   static const String kasirs = '/accounts/kasirs/';
   static const String resetPin = '/accounts/kasirs/{id}/reset-pin/';
 
+  static const String categories = '/categories/';
+  static const String categoriesAll = '/categories/all/';
   static const String menus = '/menus/';
   static const String menusAll = '/menus/all/';
+  static const String menusBulk = '/menus/bulk/';
 
   static const String orders = '/orders/';
   static const String ordersMe = '/orders/me/';

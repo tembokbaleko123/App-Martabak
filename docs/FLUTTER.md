@@ -201,7 +201,7 @@ frontend/lib/
 │   │
 │   ├── utils/
 │   │   ├── currency_formatter.dart  # Rp format
-│   │   ├── date_formatter.dart      # Date/time format
+│   │   ├── date_formatter.dart      # Date/time format (WITA timezone)
 │   │   ├── debouncer.dart           # Debounce utility
 │   │   └── validators.dart          # Input validation
 │   │
@@ -601,13 +601,65 @@ class ApiClient {
 | GET | `/orders/{id}/` | JWT | Detail order |
 | GET | `/orders/{id}/status/` | JWT | Cek status |
 | POST | `/orders/{id}/cancel/` | JWT Owner | Batalkan order |
-| GET | `/orders/queue/` | JWT | Antrian shared |
+| GET | `/orders/queue/` | JWT | Antrian shared (6 req/min throttle) |
 | GET | `/reports/daily/` | JWT Owner | Laporan harian |
 | GET | `/reports/profit/` | JWT Owner | Laporan profit |
 | GET | `/settings/` | JWT Owner | Get settings |
 | PATCH | `/settings/` | JWT Owner | Update settings |
 
-### 7.3 Error Handling
+### 7.3 Timezone Handling
+
+Backend menggunakan **WITA (Asia/Makassar, UTC+8)** untuk semua timestamp.
+
+**Frontend DateTime Handling:**
+
+```dart
+// date_formatter.dart - WITA timezone support
+class DateFormatter {
+  // Konversi datetime string ke WITA (dari offset +07 atau +08)
+  static DateTime parseToWita(String dateStr) {
+    final dt = DateTime.parse(dateStr);
+    const witaOffset = Duration(hours: 8);
+    final diff = witaOffset - dt.timeZoneOffset;
+    return dt.add(diff);
+  }
+
+  // Format datetime dengan label WITA
+  static String formatWita(DateTime dateTime) {
+    return '${dateTime.day.toString().padLeft(2, '0')} '
+           '${_months[dateTime.month - 1]} '
+           '${dateTime.year}, '
+           '${dateTime.hour.toString().padLeft(2, '0')}:'
+           '${dateTime.minute.toString().padLeft(2, '0')} WITA';
+  }
+}
+```
+
+**Order Model WITA Getters:**
+
+```dart
+class OrderModel {
+  // Raw datetime dari API
+  final DateTime createdAt;
+
+  // WITA getters untuk display
+  DateTime get createdAtWita => DateFormatter.parseToWita(createdAt.toIso8601String());
+  DateTime? get paidAtWita => paidAt != null ? DateFormatter.parseToWita(paidAt!.toIso8601String()) : null;
+  DateTime? get expiresAtWita => expiresAt != null ? DateFormatter.parseToWita(expiresAt!.toIso8601String()) : null;
+}
+```
+
+**Usage in UI:**
+
+```dart
+// ✅ Display WITA datetime
+Text(DateFormatter.formatWita(order.createdAtWita))
+
+// ✅ Display WITA time only
+Text(DateFormatter.formatWitaTime(order.createdAtWita))
+```
+
+### 7.4 Error Handling
 
 ```dart
 // Either<Failure, Success> pattern

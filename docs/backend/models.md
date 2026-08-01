@@ -36,31 +36,51 @@ class Kasir(AbstractUser):
 
 ---
 
+## Category
+
+Model untuk mengelompokkan menu. Fleksibel - owner bisa tambah/edit/hapus category.
+
+```python
+class Category(models.Model):
+    name = models.CharField(max_length=50, unique=True)  # stored lowercase
+    sort_order = models.IntegerField(default=0, unique=True)
+    is_active = models.BooleanField(default=True)
+```
+
+**Fields:**
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | AutoField | Primary key |
+| `name` | CharField | Unique category name (stored lowercase) |
+| `sort_order` | IntegerField | Display order (unique globally) |
+| `is_active` | BooleanField | Soft delete flag |
+| `created_at` | DateTimeField | Auto set on create |
+| `updated_at` | DateTimeField | Auto set on save |
+
+**Behavior:**
+- Delete category → sets `is_active=False` pada category dan semua menu di dalamnya
+- `name` selalu di-convert ke lowercase saat input
+
+**Default Categories:**
+| Name | Sort Order |
+|------|------------|
+| manis | 1 |
+| telur | 2 |
+| tipis | 3 |
+
+---
+
 ## Menu
 
 ```python
 class Menu(models.Model):
-    CATEGORY_CHOICES = [
-        ('manis', 'Manis'),
-        ('telur', 'Telur'),
-        ('tipis', 'Tipis'),
-    ]
-
     name = models.CharField(max_length=100)
     price = models.BigIntegerField()
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    category = models.ForeignKey(Category, on_delete=SET_NULL, null=True)
     emoji = models.CharField(max_length=10, default='🥞')
     image = models.ImageField(upload_to='menus/', null=True, blank=True)
     is_active = models.BooleanField(default=True)
     sort_order = models.IntegerField(default=0)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['category', 'sort_order'],
-                name='unique_sort_order_per_category'
-            )
-        ]
 ```
 
 **Fields:**
@@ -69,27 +89,18 @@ class Menu(models.Model):
 | `id` | AutoField | Primary key |
 | `name` | CharField | Menu name |
 | `price` | BigIntegerField | Price in Rupiah |
-| `category` | CharField | `manis`, `telur`, or `tipis` |
+| `category` | ForeignKey | FK to Category (nullable) |
 | `emoji` | CharField | Display emoji |
 | `image` | ImageField | Menu image (optional), stored in `backend/media/menus/` |
 | `is_active` | BooleanField | Show/hide menu |
-| `sort_order` | IntegerField | Display order (unique per category) |
+| `sort_order` | IntegerField | Display order |
 
-**Constraints:**
-- `unique_sort_order_per_category`: (category, sort_order) must be unique
-
-**Serializer Fields (API Response):**
+**API Response Fields:**
 | Field | Description |
 |-------|-------------|
+| `category` | Nested object `{id, name}` |
 | `image_url` | Full URL to uploaded image (or null) |
-| `default_image_url` | Default image URL based on category |
-
-**Default Images:**
-| Category | Default Image |
-|----------|--------------|
-| manis | `martabak_manis.jpg` |
-| telur | `martabak_telur.jpg` |
-| tipis | `martabak_tipis.jpg` |
+| `default_image_url` | Default image URL (`defaults/martabak.jpg`) |
 
 **Default Menu Items:**
 | Name | Price | Category |
@@ -168,14 +179,6 @@ class OrderItem(models.Model):
     qty = models.IntegerField()
     price_at_order = models.BigIntegerField()
     subtotal = models.IntegerField()  # auto-calculated
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['order', 'menu'],
-                name='unique_menu_per_order'
-            )
-        ]
 ```
 
 **Fields:**
@@ -300,33 +303,40 @@ class MaterialCostItem(models.Model):
 
 ```
 ┌──────────────┐       ┌──────────────┐       ┌──────────────┐
-│   kasirs     │       │    menus     │       │    orders    │
+│   kasirs     │       │ categories   │       │    menus     │
 ├──────────────┤       ├──────────────┤       ├──────────────┤
 │ id (PK)      │       │ id (PK)      │       │ id (PK)      │
-│ username     │       │ name          │       │ ref_id       │
-│ pin_hash     │       │ price         │       │ kasir_id (FK)│
-│ role         │       │ category      │       │ total_amount │
-│ is_active    │       │ emoji         │       │ status       │
-│ created_at   │       │ image         │       │ qr_string    │
-│ updated_at   │       │ is_active     │       │ expires_at   │
-└──────────────┘       │ sort_order    │       │ paid_at      │
-       │               │ created_at   │       │ note         │
-       │               │ updated_at   │       │ goqris_data  │
-       │               └──────────────┘       │ created_at   │
-       │                                        └──────────────┘
-       │                                              │
-       │                                              │
-       ▼                                              ▼
+│ username     │       │ name         │◄──────│ category_id   │
+│ pin_hash     │       │ sort_order   │  FK   │ (FK)         │
+│ role         │       │ is_active    │       │ name         │
+│ is_active    │       │ created_at   │       │ price        │
+│ created_at   │       │ updated_at   │       │ emoji        │
+│ updated_at   │       └──────────────┘       │ image        │
+└──────────────┘                               │ is_active    │
+                                                │ sort_order   │
+                                                │ created_at   │
+                                                │ updated_at   │
+                                                └──────────────┘
+        │                                              │
+        │                                              │
+        ▼                                              ▼
 ┌──────────────┐                              ┌──────────────┐
-│  order_items │                              │   settings   │
+│   orders     │                              │  order_items │
 ├──────────────┤                              ├──────────────┤
 │ id (PK)      │                              │ id (PK)      │
-│ order_id (FK)│                              │ goqris_proj..│
-│ menu_id (FK) │                              └──────────────┘
-│ qty          │
-│ price_at_... │
-│ subtotal     │
-└──────────────┘
+│ ref_id       │                              │ order_id(FK)│
+│ kasir_id(FK) │                              │ menu_id (FK)│
+│ total_amount │                              │ qty          │
+│ status       │                              │ price_at_...│
+│ qr_string    │                              │ subtotal     │
+│ qr_image_url │                              └──────────────┘
+│ expires_at   │
+│ paid_at      │                              ┌──────────────┐
+│ note         │                              │   settings   │
+│ goqris_data  │                              ├──────────────┤
+│ created_at   │                              │ id (PK)      │
+└──────────────┘                              │ goqris_proj..│
+                                               └──────────────┘
 
 ┌──────────────┐       ┌──────────────────────────┐
 │material_items│       │  material_cost_entries   │
@@ -358,10 +368,8 @@ class MaterialCostItem(models.Model):
 
 ```
 backend/media/
-├── defaults/           # Default menu images
-│   ├── martabak_manis.jpg
-│   ├── martabak_telur.jpg
-│   └── martabak_tipis.jpg
+├── defaults/
+│   └── martabak.jpg    # Default image untuk semua category
 └── menus/              # Uploaded menu images
     └── <uploaded_files>
 ```

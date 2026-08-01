@@ -25,7 +25,6 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
-  String _selectedCategory = 'manis';
   final TextEditingController _noteController = TextEditingController();
 
   @override
@@ -96,18 +95,39 @@ class _OrderScreenState extends State<OrderScreen> {
             return Column(
               children: [
                 CategoryTab(
-                  selectedCategory: _selectedCategory,
-                  onCategorySelected: (category) {
-                    setState(() {
-                      _selectedCategory = category;
-                    });
+                  categories: state.categories,
+                  selectedCategoryId: state.selectedCategoryId,
+                  onCategorySelected: (categoryId) {
+                    context.read<OrderBloc>().add(OrderSelectCategory(categoryId));
                   },
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Cari menu...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      filled: true,
+                      fillColor: AppColors.surfaceVariant,
+                    ),
+                    onChanged: (value) {
+                      context.read<OrderBloc>().add(OrderSearch(value));
+                    },
+                  ),
                 ),
                 Expanded(
                   child: MenuGrid(
-                    menus: state.menus
-                        .where((m) => m.category == _selectedCategory && m.isActive)
-                        .toList(),
+                    menus: state.filteredMenus,
                     onMenuTap: (menu) {
                       context.read<OrderBloc>().add(OrderAddItem(menu: menu));
                     },
@@ -161,7 +181,7 @@ class _OrderScreenState extends State<OrderScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => _showCartSheet(context, state),
+                    onPressed: () => _showCartSheet(context),
                     child: const Text('Lihat Keranjang'),
                   ),
                 ),
@@ -181,7 +201,7 @@ class _OrderScreenState extends State<OrderScreen> {
     );
   }
 
-  void _showCartSheet(BuildContext context, OrderMenuLoaded state) {
+  void _showCartSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -189,52 +209,59 @@ class _OrderScreenState extends State<OrderScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
       ),
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.6,
-          minChildSize: 0.3,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (context, scrollController) {
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Keranjang', style: AppTypography.titleLarge),
-                      TextButton(
-                        onPressed: () {
-                          context.read<OrderBloc>().add(OrderClearCart());
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Hapus Semua'),
+      builder: (sheetContext) {
+        return BlocBuilder<OrderBloc, OrderState>(
+          builder: (context, state) {
+            if (state is! OrderMenuLoaded) {
+              return const SizedBox.shrink();
+            }
+            return DraggableScrollableSheet(
+              initialChildSize: 0.6,
+              minChildSize: 0.3,
+              maxChildSize: 0.9,
+              expand: false,
+              builder: (sheetContext, scrollController) {
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Keranjang', style: AppTypography.titleLarge),
+                          TextButton(
+                            onPressed: () {
+                              context.read<OrderBloc>().add(OrderClearCart());
+                              Navigator.pop(sheetContext);
+                            },
+                            child: const Text('Hapus Semua'),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    itemCount: state.cart.length,
-                    itemBuilder: (context, index) {
-                      final item = state.cart[index];
-                      return CartItemTile(
-                        item: item,
-                        onQtyChanged: (qty) {
-                          context.read<OrderBloc>().add(
-                                OrderUpdateQty(menuId: item.menu.id, qty: qty),
-                              );
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        itemCount: state.cart.length,
+                        itemBuilder: (sheetContext, index) {
+                          final item = state.cart[index];
+                          return CartItemTile(
+                            item: item,
+                            onQtyChanged: (qty) {
+                              context.read<OrderBloc>().add(
+                                    OrderUpdateQty(menuId: item.menu.id, qty: qty),
+                                  );
+                            },
+                            onRemove: () {
+                              context.read<OrderBloc>().add(OrderRemoveItem(item.menu.id));
+                            },
+                          );
                         },
-                        onRemove: () {
-                          context.read<OrderBloc>().add(OrderRemoveItem(item.menu.id));
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
+                      ),
+                    ),
+                  ],
+                );
+              },
             );
           },
         );

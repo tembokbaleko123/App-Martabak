@@ -12,6 +12,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # API v1
     path('api/v1/accounts/', include('apps.accounts.urls')),
+    path('api/v1/categories/', include('apps.categories.urls')),
     path('api/v1/menus/', include('apps.menus.urls')),
     path('api/v1/orders/', include('apps.orders.urls')),
     path('api/v1/goqris/', include('apps.goqris.urls')),

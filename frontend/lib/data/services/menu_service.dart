@@ -21,7 +21,7 @@ class MenuService {
   Future<MenuModel> createMenu({
     required String name,
     required int price,
-    required String category,
+    required int categoryId,
     String? emoji,
     int? sortOrder,
   }) async {
@@ -30,7 +30,7 @@ class MenuService {
       data: {
         'name': name,
         'price': price,
-        'category': category,
+        'category_id': categoryId,
         if (emoji != null) 'emoji': emoji,
         if (sortOrder != null) 'sort_order': sortOrder,
       },
@@ -48,5 +48,25 @@ class MenuService {
 
   Future<void> deleteMenu(int id) async {
     await _client.delete('${ApiEndpoints.menus}$id/');
+  }
+
+  Future<List<MenuModel>> bulkUpdate({
+    required List<int> menuIds,
+    int? categoryId,
+    bool? isActive,
+  }) async {
+    final response = await _client.patch(
+      ApiEndpoints.menusBulk,
+      data: {
+        'menu_ids': menuIds,
+        if (categoryId != null) 'category_id': categoryId,
+        if (isActive != null) 'is_active': isActive,
+      },
+    );
+    final data = response.data as Map<String, dynamic>;
+    final list = data['updated_menus'] as List<dynamic>;
+    return list
+        .map((e) => MenuModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

@@ -4,6 +4,7 @@ class RouteNames {
   static const String ownerHome = '/owner';
 
   static const String order = '/order';
+  static const String orderDetail = '/order-detail';
   static const String queue = '/queue';
   static const String history = '/history';
   static const String profile = '/profile';
