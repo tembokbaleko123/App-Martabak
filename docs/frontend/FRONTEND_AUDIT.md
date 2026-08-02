@@ -30,6 +30,23 @@
 | 🔵 LOW | 3 | ✅ All Fixed |
 | **Total** | **10 issues** | **10 fixed** ✅ |
 
+**Performance Optimizations (2026-08-02):**
+
+| # | Optimization | Status |
+|---|-------------|--------|
+| OPT-001 | Background polling (QR) | ✅ Fixed |
+| OPT-002 | Background polling (Queue) | ✅ Fixed |
+| OPT-003 | Category tab rebuild | ✅ Fixed |
+| OPT-004 | filteredMenus caching | ✅ Fixed |
+| OPT-005 | Currency formatter | ✅ Fixed |
+| OPT-006 | Menu data caching | ✅ Fixed |
+| OPT-007 | Search debouncing | ✅ Fixed |
+| OPT-008 | OrderDetail refresh | ✅ Fixed |
+| OPT-009 | Service singleton | ✅ Fixed |
+| OPT-010 | History pagination | ✅ Fixed |
+| OPT-011 | Release menu memory | ✅ Fixed |
+| **Total** | **11 optimizations** | **✅ 11/11 Done** |
+
 ---
 
 ## 🔴 CRITICAL BUGS
