@@ -20,24 +20,29 @@ class OrderMenuLoaded extends OrderState {
   final int? selectedCategoryId;
   final String searchQuery;
 
-  const OrderMenuLoaded({
+  late final List<MenuModel> filteredMenus;
+  late final int totalAmount;
+  late final int itemCount;
+
+  OrderMenuLoaded({
     required this.menus,
     required this.categories,
     this.cart = const [],
     this.selectedCategoryId,
     this.searchQuery = '',
-  });
+  }) {
+    _computeDerivedValues();
+  }
 
-  int get totalAmount => cart.fold(0, (sum, item) => sum + item.subtotal);
-  int get itemCount => cart.fold(0, (sum, item) => sum + item.qty);
-
-  List<MenuModel> get filteredMenus {
-    return menus.where((m) {
+  void _computeDerivedValues() {
+    final query = searchQuery.toLowerCase();
+    filteredMenus = menus.where((m) {
       final matchesCategory = selectedCategoryId == null || m.categoryId == selectedCategoryId;
-      final matchesSearch = searchQuery.isEmpty ||
-          m.name.toLowerCase().contains(searchQuery.toLowerCase());
+      final matchesSearch = query.isEmpty || m.name.toLowerCase().contains(query);
       return matchesCategory && m.isActive && matchesSearch;
     }).toList();
+    totalAmount = cart.fold(0, (sum, item) => sum + item.subtotal);
+    itemCount = cart.fold(0, (sum, item) => sum + item.qty);
   }
 
   OrderMenuLoaded copyWith({
@@ -48,12 +53,23 @@ class OrderMenuLoaded extends OrderState {
     bool clearSelectedCategoryId = false,
     String? searchQuery,
   }) {
-    return OrderMenuLoaded(
+    final newState = OrderMenuLoaded(
       menus: menus ?? this.menus,
       categories: categories ?? this.categories,
       cart: cart ?? this.cart,
       selectedCategoryId: clearSelectedCategoryId ? null : (selectedCategoryId ?? this.selectedCategoryId),
       searchQuery: searchQuery ?? this.searchQuery,
+    );
+    return newState;
+  }
+
+  OrderMenuLoaded releaseMenuMemory() {
+    return OrderMenuLoaded(
+      menus: const [],
+      categories: categories,
+      cart: cart,
+      selectedCategoryId: selectedCategoryId,
+      searchQuery: searchQuery,
     );
   }
 

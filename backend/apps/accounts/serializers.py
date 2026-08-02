@@ -56,24 +56,37 @@ class ChangePinSerializer(serializers.Serializer):
         if len(set(value)) == 1:
             raise serializers.ValidationError('PIN tidak boleh semua digit sama (e.g., 1111)')
 
-        is_sequential_forward = all(
-            (int(value[i+1]) - int(value[i])) == 1
-            for i in range(len(value) - 1)
-        )
-        if is_sequential_forward:
-            raise serializers.ValidationError('PIN tidak boleh berurutan.')
-
-        is_sequential_reverse = all(
-            (int(value[i]) - int(value[i+1])) == 1
-            for i in range(len(value) - 1)
-        )
-        if is_sequential_reverse:
-            raise serializers.ValidationError('PIN tidak boleh berurutan.')
-
         for i in range(len(value) - 3):
             chunk = value[i:i+4]
             if all(int(chunk[j+1]) - int(chunk[j]) == 1 for j in range(3)):
                 raise serializers.ValidationError('PIN tidak boleh mengandung urutan berurutan (4 digit atau lebih).')
+
+        for i in range(len(value) - 3):
+            chunk = value[i:i+4]
+            if all(int(chunk[j]) - int(chunk[j+1]) == 1 for j in range(3)):
+                raise serializers.ValidationError('PIN tidak boleh mengandung urutan berurutan (4 digit atau lebih).')
+
+        for i in range(len(value) - 3):
+            if value[i] == value[i+1] == value[i+2]:
+                chunk = value[i:i+3]
+                if i + 3 < len(value) and value[i] != value[i+3]:
+                    raise serializers.ValidationError('PIN tidak boleh mengandung digit berulang (3 kali atau lebih).')
+
+        for i in range(len(value) - 3):
+            forward_cyclic = all(
+                (int(value[j+1]) - int(value[j])) % 10 == 1
+                for j in range(i, i + 3)
+            )
+            if forward_cyclic:
+                raise serializers.ValidationError('PIN tidak boleh berurutan (termasuk wrap-around).')
+
+        for i in range(len(value) - 3):
+            reverse_cyclic = all(
+                (int(value[j]) - int(value[j+1])) % 10 == 1
+                for j in range(i, i + 3)
+            )
+            if reverse_cyclic:
+                raise serializers.ValidationError('PIN tidak boleh berurutan (termasuk wrap-around).')
 
         common_pins = {'0000', '1111', '1234', '4321', '9999', '2222', '3333', '4444', '5555', '6666', '7777', '8888', '000000', '111111', '123456', '654321'}
         if value in common_pins:

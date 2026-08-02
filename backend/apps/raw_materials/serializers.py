@@ -25,7 +25,7 @@ class MaterialCostItemCreateSerializer(serializers.Serializer):
     material_name = serializers.CharField(max_length=100)
     quantity = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal('0.01'))
     unit = serializers.CharField(max_length=20, required=False, allow_blank=True, default='')
-    price_per_unit = serializers.IntegerField(min_value=1)
+    price_per_unit = serializers.IntegerField(min_value=1, max_value=999999999)
 
     def validate_quantity(self, value):
         if value <= 0:

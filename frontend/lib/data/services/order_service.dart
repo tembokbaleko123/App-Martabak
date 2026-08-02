@@ -3,6 +3,10 @@ import '../../core/api/endpoints.dart';
 import '../models/order_model.dart';
 
 class OrderService {
+  static final OrderService _instance = OrderService._internal();
+  factory OrderService() => _instance;
+  OrderService._internal();
+
   final ApiClient _client = ApiClient();
 
   Future<OrderModel> createOrder({

@@ -44,6 +44,42 @@ class OrderModel extends Equatable {
   bool get isGoqris => paymentMethod == 'goqris';
   bool get isCash => paymentMethod == 'cash';
 
+  OrderModel copyWith({
+    int? id,
+    String? refId,
+    int? kasirId,
+    String? kasirName,
+    List<OrderItemModel>? items,
+    int? totalAmount,
+    String? status,
+    String? paymentMethod,
+    String? paymentMethodLabel,
+    String? note,
+    String? qrString,
+    String? qrImageUrl,
+    DateTime? expiresAt,
+    DateTime? paidAt,
+    DateTime? createdAt,
+  }) {
+    return OrderModel(
+      id: id ?? this.id,
+      refId: refId ?? this.refId,
+      kasirId: kasirId ?? this.kasirId,
+      kasirName: kasirName ?? this.kasirName,
+      items: items ?? this.items,
+      totalAmount: totalAmount ?? this.totalAmount,
+      status: status ?? this.status,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      paymentMethodLabel: paymentMethodLabel ?? this.paymentMethodLabel,
+      note: note ?? this.note,
+      qrString: qrString ?? this.qrString,
+      qrImageUrl: qrImageUrl ?? this.qrImageUrl,
+      expiresAt: expiresAt ?? this.expiresAt,
+      paidAt: paidAt ?? this.paidAt,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
   DateTime get createdAtWita => DateFormatter.parseToWita(createdAt.toIso8601String());
   DateTime? get paidAtWita => paidAt != null ? DateFormatter.parseToWita(paidAt!.toIso8601String()) : null;
   DateTime? get expiresAtWita => expiresAt != null ? DateFormatter.parseToWita(expiresAt!.toIso8601String()) : null;

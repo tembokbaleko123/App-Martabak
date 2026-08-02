@@ -81,16 +81,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
     final remaining = _order!.expiresAt!.difference(DateTime.now());
     if (remaining.isNegative && !_isExpired) {
+      _countdownTimer?.cancel();
       setState(() {
         _isExpired = true;
         _timeRemaining = Duration.zero;
       });
-      _countdownTimer?.cancel();
-      _loadOrderDetail();
+      _checkExpiredStatus();
     } else if (!remaining.isNegative) {
       setState(() {
         _timeRemaining = remaining;
       });
+    }
+  }
+
+  Future<void> _checkExpiredStatus() async {
+    try {
+      final status = await _orderService.getOrderStatus(widget.orderId);
+      if (status.status == 'expired' || status.status == 'paid') {
+        setState(() {
+          _order = _order!.copyWith(status: status.status);
+        });
+      }
+    } catch (e) {
+      // Fallback to full reload if needed
+      _loadOrderDetail();
     }
   }
 

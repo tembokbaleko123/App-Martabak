@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/currency_formatter.dart';
+import '../../../core/utils/debouncer.dart';
 import '../../../shared/widgets/loading_indicator.dart';
 import '../../../shared/widgets/error_widget.dart';
 import '../../auth/bloc/auth_bloc.dart';
@@ -26,6 +27,7 @@ class OrderScreen extends StatefulWidget {
 
 class _OrderScreenState extends State<OrderScreen> {
   final TextEditingController _noteController = TextEditingController();
+  final Debouncer _searchDebouncer = Debouncer(milliseconds: 300);
 
   @override
   void initState() {
@@ -36,6 +38,7 @@ class _OrderScreenState extends State<OrderScreen> {
   @override
   void dispose() {
     _noteController.dispose();
+    _searchDebouncer.dispose();
     super.dispose();
   }
 
@@ -109,11 +112,16 @@ class _OrderScreenState extends State<OrderScreen> {
           if (state is OrderMenuLoaded) {
             return Column(
               children: [
-                CategoryTab(
-                  categories: state.categories,
-                  selectedCategoryId: state.selectedCategoryId,
-                  onCategorySelected: (categoryId) {
-                    context.read<OrderBloc>().add(OrderSelectCategory(categoryId));
+                BlocSelector<OrderBloc, OrderState, int?>(
+                  selector: (state) => state is OrderMenuLoaded ? state.selectedCategoryId : null,
+                  builder: (context, selectedCategoryId) {
+                    return CategoryTab(
+                      categories: state.categories,
+                      selectedCategoryId: selectedCategoryId,
+                      onCategorySelected: (categoryId) {
+                        context.read<OrderBloc>().add(OrderSelectCategory(categoryId));
+                      },
+                    );
                   },
                 ),
                 Padding(
@@ -136,7 +144,9 @@ class _OrderScreenState extends State<OrderScreen> {
                       fillColor: AppColors.surfaceVariant,
                     ),
                     onChanged: (value) {
-                      context.read<OrderBloc>().add(OrderSearch(value));
+                      _searchDebouncer.run(() {
+                        context.read<OrderBloc>().add(OrderSearch(value));
+                      });
                     },
                   ),
                 ),

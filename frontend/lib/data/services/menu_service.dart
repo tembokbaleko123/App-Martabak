@@ -3,19 +3,50 @@ import '../../core/api/endpoints.dart';
 import '../models/menu_model.dart';
 
 class MenuService {
+  static final MenuService _instance = MenuService._internal();
+  factory MenuService() => _instance;
+  MenuService._internal();
+
   final ApiClient _client = ApiClient();
 
-  Future<List<MenuModel>> getMenus() async {
+  List<MenuModel>? _cachedMenus;
+  DateTime? _lastFetch;
+  static const _cacheValidDuration = Duration(minutes: 5);
+
+  Future<List<MenuModel>> getMenus({bool forceRefresh = false}) async {
+    if (!forceRefresh &&
+        _cachedMenus != null &&
+        _lastFetch != null &&
+        DateTime.now().difference(_lastFetch!) < _cacheValidDuration) {
+      return _cachedMenus!;
+    }
+
     final response = await _client.get(ApiEndpoints.menus);
     final data = response.data as Map<String, dynamic>;
     final list = data['data'] as List<dynamic>;
-    return list.map((e) => MenuModel.fromJson(e as Map<String, dynamic>)).toList();
+    _cachedMenus = list.map((e) => MenuModel.fromJson(e as Map<String, dynamic>)).toList();
+    _lastFetch = DateTime.now();
+    return _cachedMenus!;
   }
 
-  Future<List<MenuModel>> getAllMenus() async {
+  Future<List<MenuModel>> getAllMenus({bool forceRefresh = false}) async {
+    if (!forceRefresh &&
+        _cachedMenus != null &&
+        _lastFetch != null &&
+        DateTime.now().difference(_lastFetch!) < _cacheValidDuration) {
+      return _cachedMenus!;
+    }
+
     final response = await _client.get(ApiEndpoints.menusAll);
     final list = response.data as List<dynamic>;
-    return list.map((e) => MenuModel.fromJson(e as Map<String, dynamic>)).toList();
+    _cachedMenus = list.map((e) => MenuModel.fromJson(e as Map<String, dynamic>)).toList();
+    _lastFetch = DateTime.now();
+    return _cachedMenus!;
+  }
+
+  void invalidateCache() {
+    _cachedMenus = null;
+    _lastFetch = null;
   }
 
   Future<MenuModel> createMenu({
@@ -35,6 +66,7 @@ class MenuService {
         if (sortOrder != null) 'sort_order': sortOrder,
       },
     );
+    invalidateCache();
     return MenuModel.fromJson(response.data);
   }
 
@@ -43,11 +75,13 @@ class MenuService {
       '${ApiEndpoints.menus}$id/',
       data: data,
     );
+    invalidateCache();
     return MenuModel.fromJson(response.data);
   }
 
   Future<void> deleteMenu(int id) async {
     await _client.delete('${ApiEndpoints.menus}$id/');
+    invalidateCache();
   }
 
   Future<List<MenuModel>> bulkUpdate({
@@ -63,6 +97,7 @@ class MenuService {
         if (isActive != null) 'is_active': isActive,
       },
     );
+    invalidateCache();
     final data = response.data as Map<String, dynamic>;
     final list = data['updated_menus'] as List<dynamic>;
     return list

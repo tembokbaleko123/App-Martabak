@@ -13,9 +13,10 @@ class CurrencyFormatter {
 
   static String formatCompact(int amount) {
     if (amount >= 1000000) {
-      return 'Rp ${(amount / 1000000).toStringAsFixed(1)}jt';
+      final value = amount / 1000000;
+      return 'Rp ${value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 1)}jt';
     } else if (amount >= 1000) {
-      return 'Rp ${(amount / 1000).toStringAsFixed(0)}rb';
+      return 'Rp ${(amount / 1000).round()}rb';
     }
     return format(amount);
   }

@@ -27,60 +27,60 @@ class CategoryTab extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-              child: Material(
-                color: selectedCategoryId == null ? AppColors.primary : AppColors.surfaceVariant,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                child: InkWell(
-                  onTap: () => onCategorySelected(null),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.md,
-                    ),
-                      child: Text(
-                      'Semua Menu',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: selectedCategoryId == null ? Colors.white : AppColors.textPrimary,
-                        fontWeight: selectedCategoryId == null ? FontWeight.w600 : FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            _CategoryChip(
+              label: 'Semua Menu',
+              isSelected: selectedCategoryId == null,
+              onTap: () => onCategorySelected(null),
             ),
             ...categories.map((category) {
-              final isSelected = selectedCategoryId == category.id;
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-                child: Material(
-                  color: isSelected ? AppColors.primary : AppColors.surfaceVariant,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                  child: InkWell(
-                    onTap: () => onCategorySelected(category.id),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.md,
-                      ),
-                      child: Text(
-                        category.name,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.textPrimary,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+              return _CategoryChip(
+                label: category.name,
+                isSelected: selectedCategoryId == category.id,
+                onTap: () => onCategorySelected(category.id),
               );
             }),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CategoryChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      child: Material(
+        color: isSelected ? AppColors.primary : AppColors.surfaceVariant,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.md,
+            ),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isSelected ? Colors.white : AppColors.textPrimary,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ),
         ),
       ),
     );
