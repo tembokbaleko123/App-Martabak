@@ -62,7 +62,7 @@ docs/
 - [Frontend Optimization Report](frontend/FRONTEND_OPTIMIZATION.md) — 11 optimizations
 
 ### Other
-- [Postman Collection](../postman/App-Martabak-API.json)
+- [Postman Collection](postman/App-Martabak-API.json)
 - [Deployment Guide](deployment/README.md)
 
 ## License

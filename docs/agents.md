@@ -213,5 +213,5 @@ frontend/lib/
 - [Backend Setup](backend/setup.md)
 - [API Endpoints](backend/api-endpoints.md)
 - [Data Models](backend/models.md)
-- [Postman Collection](../postman/App-Martabak-API.json)
+- [Postman Collection](postman/App-Martabak-API.json)
 - [Deployment Guide](deployment/README.md)

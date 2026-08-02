@@ -1049,4 +1049,4 @@ Hapus cost entry.
 
 - [Setup Guide](setup.md)
 - [Data Models](models.md)
-- [Postman Collection](../../postman/App-Martabak-API.json)
+- [Postman Collection](../postman/App-Martabak-API.json)
