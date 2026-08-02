@@ -30,3 +30,5 @@ class AuthChangePinRequested extends AuthEvent {
   @override
   List<Object?> get props => [oldPin, newPin];
 }
+
+class AuthSessionExpired extends AuthEvent {}

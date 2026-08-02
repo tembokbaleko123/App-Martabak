@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'endpoints.dart';
 import 'exceptions.dart';
 import '../utils/connectivity_service.dart';
+import '../events/unauthorized_event_bus.dart';
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
@@ -65,6 +66,7 @@ class ApiClient {
       final refreshToken = await _storage.read(key: 'refresh_token');
       if (refreshToken == null) {
         await clearTokens();
+        _emitUnauthorized();
         return false;
       }
 
@@ -83,8 +85,16 @@ class ApiClient {
     } catch (e) {
       debugPrint('Token refresh failed: $e');
       await clearTokens();
+      _emitUnauthorized();
     }
     return false;
+  }
+
+  void _emitUnauthorized() {
+    UnauthorizedEventBus().emit(UnauthorizedEvent(
+      statusCode: 401,
+      message: 'Sesi telah berakhir, silakan login kembali',
+    ));
   }
 
   Future<Response> _retryRequest(RequestOptions requestOptions) async {
